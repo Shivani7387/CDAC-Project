@@ -1,0 +1,152 @@
+ 1  ip a
+    2  ifup ens33
+    3  ls
+    4  tabdump site
+    5  vim k.sh
+    6  bash k.sh 
+    7  lsxcatd -a
+    8  tabdump site
+    9  source /etc/profile.d/xcat.sh
+   10  tabdump site
+   11  lsxcatd -a
+   12  lsblk
+   13  lsblk -h
+   14  lsblk
+   15  lsdef -t osimage
+   16  dd if= /dev/sr0 of=centos.iso
+   17  dd if=/dev/sr0 of=centos.iso
+   18  lsblk
+   19  dd if=/dev/sr0 of=centos.iso
+   20  copycds /dev/sr0
+   21  ls
+   22  cd xcat/
+   23  ls
+   24  copycds /dev/sr0
+   25  lsdef -t osimage
+   26  dd if=/dev/sr0 of=centos.iso
+   27  ls
+   28  lsblk
+   29  dd if=/dev/sr0 of=centos.iso
+   30  ls
+   31  lsblk
+   32  lsdef -t osimage
+   33  copycds /dev/sr0
+   34  dd if=/dev/sr0 of=centos.iso
+   35  lsdef -t osimage
+   36  hostname
+   37  ip a
+   38  tabdump site
+   39  chdef -t site master=10.10.10.161
+   40  chdef -t site nameservers=10
+   41  chdef -t site nameservers=10.10.10.161
+   42  tabdump site
+   43  chdef -t site forwarders=10.10.10.161
+   44  tabdump site
+   45  yum install vsftp
+   46  lsdef -t osimage
+   47  mkdef -t node node1 ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   48  mkdef -t node node1 ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba groups=all
+   49  makehosts
+   50  makenetworks
+   51  makedhcp -n
+   52  makedns -n
+   53  chdef -t site domain=hpcsa.in
+   54  tabdump site
+   55  makedns -n
+   56  vim /etc/hosts
+   57  makedns -n
+   58  lsdef -t osimage
+   59  nodeset compute osimage=centos7.9-x86_64-netboot-compute
+   60  mkdef -t node node1,groups=all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   61  rmdef -t node node1,groups=all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   62  rmdef node1
+   63  mkdef -t node node1,groups=all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   64  mkdef -t node node1 groups=compute,all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   65  vim /etc/hosts
+   66  makehosts 
+   67  makenetworks
+   68  makedhcp -n
+   69  makedns -n
+   70  nodeset compute osimage=centos7.9-x86_64-netboot-compute
+   71  ls
+   72  lsdef -t osimage
+   73  copycds centos.iso 
+   74  ip a
+   75  ls
+   76  du -sh centos.iso
+   77  rm -f centos.iso
+   78  df -Th
+   79  ls
+   80  df -th
+   81  df -Th
+   82  du -sh /*
+   83  getenforce 
+   84  init 0
+   85  tailf /var/log/messages 
+   86  cat /var/lib/dhcpd/dhcpd.leases
+   87  cat /var/lib/dhcpd/dhcpd.leases~
+   88  more /etc/dhcp/dhcpd.conf
+   89  tabdump networks
+   90  cat /etc/hosts
+   91  tabedit networks
+   92  tabdump networks
+   93  makedhcp -n
+   94  more /etc/dhcp/dhcpd.conf
+   95  vim /etc/dhcp/dhcpd.conf
+   96  cat /var/lib/dhcpd/dhcpd.leases
+   97  tabdump site
+   98  tabdump site | grep dhcp
+   99  #chdef -t site dhcpinterfaces=
+  100  ip r
+  101  ip a
+  102  nmtui
+  103  ip a
+  104  chdef -t site dhcpinterfaces=10.10.10.161
+  105  chdef -t site dhcpinterfaces=ens34
+  106  tabdump site
+  107  makedhcp -n
+  108  more /etc/dhcp/dhcpd.conf
+  109  cat /etc/resolv.conf 
+  110  vim /etc/resolv.conf 
+  111  cat /var/lib/dhcpd/dhcpd.leases
+  112  makehosts
+  113  makenetworks 
+  114  makedhcp -n
+  115  makedns -n
+  116  cat /var/lib/dhcpd/dhcpd.leases
+  117  cat /tftpboot/xcat/xnba/nets/10.10.10.0_24
+  118  rmdef node1
+  119  nodels
+  120  mkdef -t node node1 groups=compute,all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba 
+  121  nodels
+  122  lsdef -t node node1
+  123  makehosts
+  124  makenetworks
+  125  makedhcp -a
+  126  makedns -n
+  127  cat /var/lib/dhcpd/dhcpd.leases
+  128  #nodeset node1 osimage=
+  129  lsdef -t osimage
+  130  nodeset node1 osimage=centos7.9-x86_64-netboot-compute
+  131  systemctl status dhcpd
+  132  systemctl restart dhcpd
+  133  tailf /var/log/messages 
+  134  seq 10.10.10.162 10.10.10.170
+  135  seq --help
+  136  vim range
+  137  yum install fping
+  138  fping -f range
+  139  lsdef -t node node1
+  140  ssh 10.10.10.164
+  141  ping  10.10.10.164
+  142  cat /etc/hosts
+  143  #chdef -t site dhcpinterfaces="|10.10.10.161"
+  144  ip a
+  145  chdef -t site dhcpinterfaces="ens34|10.10.10.161"
+  146  tabdump site
+  147  tabdump site | grep dhcp
+  148  tabdump network
+  149  tabdump networks
+  150  history
+  151  lsdef -t node node1
+  152  tailf /var/log/messages 

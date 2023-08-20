@@ -1,0 +1,114 @@
+    9  source /etc/profile.d/xcat.sh
+   10  tabdump site
+   11  lsxcatd -a
+   12  lsblk
+   13  lsblk -h
+   14  lsblk
+   15  lsdef -t osimage
+   16  dd if= /dev/sr0 of=centos.iso
+   17  dd if=/dev/sr0 of=centos.iso
+   18  lsblk
+   19  dd if=/dev/sr0 of=centos.iso
+   20  copycds /dev/sr0
+   21  ls
+   22  cd xcat/
+   23  ls
+   24  copycds /dev/sr0
+   25  lsdef -t osimage
+   26  dd if=/dev/sr0 of=centos.iso
+   27  ls
+   28  lsblk
+   29  dd if=/dev/sr0 of=centos.iso
+   30  ls
+   31  lsblk
+   32  lsdef -t osimage
+   33  copycds /dev/sr0
+   34  dd if=/dev/sr0 of=centos.iso
+   35  lsdef -t osimage
+   36  hostname
+   37  ip a
+   38  tabdump site
+   39  chdef -t site master=10.10.10.161
+   40  chdef -t site nameservers=10
+   41  chdef -t site nameservers=10.10.10.161
+   42  tabdump site
+   43  chdef -t site forwarders=10.10.10.161
+   44  tabdump site
+   45  yum install vsftp
+   46  lsdef -t osimage
+   47  mkdef -t node node1 ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   48  mkdef -t node node1 ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba groups=all
+   49  makehosts
+   50  makenetworks
+   51  makedhcp -n
+   52  makedns -n
+   53  chdef -t site domain=hpcsa.in
+   54  tabdump site
+   55  makedns -n
+   56  vim /etc/hosts
+   57  makedns -n
+   58  lsdef -t osimage
+   59  nodeset compute osimage=centos7.9-x86_64-netboot-compute
+   60  mkdef -t node node1,groups=all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   61  rmdef -t node node1,groups=all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   62  rmdef node1
+   63  mkdef -t node node1,groups=all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   64  mkdef -t node node1 groups=compute,all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   65  vim /etc/hosts
+   66  makehosts 
+   67  makenetworks
+   68  makedhcp -n
+   69  makedns -n
+   70  nodeset compute osimage=centos7.9-x86_64-netboot-compute
+   71  ls
+   72  lsdef -t osimage
+   73  copycds centos.iso 
+   74  ip a
+   75  ls
+   76  du -sh centos.iso
+   77  rm -f centos.iso
+   78  df -Th
+   79  ls
+   80  df -th
+   81  df -Th
+   82  du -sh /*
+   83  getenforce 
+   84  init 0
+   85  cat /var/lib/dhcpd/dhcpd.leases
+   86  tabedit networks
+   87  makenetworks 
+   88  makedhcp -n
+   89  cat /etc/dhcp/dhcpd.conf
+   90  systemctl status dhcpd
+   91  systemctl restart dhcpd
+   92  systemctl status dhcpd
+   93  ssh node1
+   94  ping node1
+   95  ping 10.10.10.163
+   96  mkdir -p /install/custom/netboot
+   97  #chdef -t osimage -o centos7.7-x86_64-netboot-compute synclists="/install/custom/netboot/compute.synclist"
+   98  lsdef -t osimage
+   99  chdef -t osimage -o centos7.9-x86_64-netboot-compute synclists="/install/custom/netboot/compute.synclist"
+  100  lsdef -t osimage centos7.9-x86_64-netboot-compute
+  101  echo "/etc/passwd -> /etc/passwd" > /install/custom/netboot/compute.synclist
+  102  echo "/etc/group -> /etc/group" > /install/custom/netboot/compute.synclist
+  103  echo "/etc/shadow -> /etc/shadow" > /install/custom/netboot/compute.synclist
+  104  nodeset compute osimage=centos7.9-x86_64-netboot-compute
+  105  systemctl restart dhcpd
+  106  ping 10.10.10.163
+  107  ping 10.10.10.164
+  108  mkdef -t node node2 groups=compute,all ip=10.10.10.165 mac=00:50:56:3C:78:A8 netboot=xnba
+  109  mkdef -t node -o node3 groups=compute,all ip=10.10.10.166 mac=00:50:56:22:0A:E0 netboot=xnba
+  110  chtab key=system passwd.username=root passwd.password=root
+  111  node set node3 osimage=centos7.9-x86_64-netboot-compute
+  112  nodeset node3 osimage=centos7.9-x86_64-netboot-compute
+  113  makehosts
+  114  nodeset node3 osimage=centos7.9-x86_64-netboot-compute
+  115  makenetworks
+  116  makedhcp -n
+  117  makedns -n
+  118  cat /etc/resolv.conf 
+  119  nodeset node3 osimage=centos7.9-x86_64-netboot-compute
+  120  chdef node3 provmethod=centos7.9-x86_64-netboot-compute
+  121  cat /var/lib/dhcpd/dhcpd.leases
+  122  systemctl restart dhcpd

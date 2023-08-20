@@ -1,0 +1,156 @@
+ 1  ip a
+    2  ifup ens33
+    3  ls
+    4  tabdump site
+    5  vim k.sh
+    6  bash k.sh 
+    7  lsxcatd -a
+    8  tabdump site
+    9  source /etc/profile.d/xcat.sh
+   10  tabdump site
+   11  lsxcatd -a
+   12  lsblk
+   13  lsblk -h
+   14  lsblk
+   15  lsdef -t osimage
+   16  dd if= /dev/sr0 of=centos.iso
+   17  dd if=/dev/sr0 of=centos.iso
+   18  lsblk
+   19  dd if=/dev/sr0 of=centos.iso
+   20  copycds /dev/sr0
+   21  ls
+   22  cd xcat/
+   23  ls
+   24  copycds /dev/sr0
+   25  lsdef -t osimage
+   26  dd if=/dev/sr0 of=centos.iso
+   27  ls
+   28  lsblk
+   29  dd if=/dev/sr0 of=centos.iso
+   30  ls
+   31  lsblk
+   32  lsdef -t osimage
+   33  copycds /dev/sr0
+   34  dd if=/dev/sr0 of=centos.iso
+   35  lsdef -t osimage
+   36  hostname
+   37  ip a
+   38  tabdump site
+   39  chdef -t site master=10.10.10.161
+   40  chdef -t site nameservers=10
+   41  chdef -t site nameservers=10.10.10.161
+   42  tabdump site
+   43  chdef -t site forwarders=10.10.10.161
+   44  tabdump site
+   45  yum install vsftp
+   46  lsdef -t osimage
+   47  mkdef -t node node1 ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   48  mkdef -t node node1 ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba groups=all
+   49  makehosts
+   50  makenetworks
+   51  makedhcp -n
+   52  makedns -n
+   53  chdef -t site domain=hpcsa.in
+   54  tabdump site
+   55  makedns -n
+   56  vim /etc/hosts
+   57  makedns -n
+   58  lsdef -t osimage
+   59  nodeset compute osimage=centos7.9-x86_64-netboot-compute
+   60  mkdef -t node node1,groups=all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   61  rmdef -t node node1,groups=all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   62  rmdef node1
+   63  mkdef -t node node1,groups=all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   64  mkdef -t node node1 groups=compute,all ip=10.10.10.163 mac=00:0C:29:1E:30:81 netboot=xnba
+   65  vim /etc/hosts
+   66  makehosts 
+   67  makenetworks
+   68  makedhcp -n
+   69  makedns -n
+   70  nodeset compute osimage=centos7.9-x86_64-netboot-compute
+   71  ls
+   72  lsdef -t osimage
+   73  copycds centos.iso 
+   74  ip a
+   75  ls
+   76  du -sh centos.iso
+   77  rm -f centos.iso
+   78  df -Th
+   79  ls
+   80  df -th
+   81  df -Th
+   82  du -sh /*
+   83  getenforce 
+   84  init 0
+   85  lsblk 
+   86  fdisk /dev/sdb 
+   87  Df -Th
+   88  df -Th
+   89  lsblk 
+   90  mkfs.ext4 /dev/sdb1 
+   91  df -Th
+   92  mkdir /ravi
+   93  mount /dev/sdb1 /ravi
+   94  df -Th
+   95  mv CentOS-7-x86_64-DVD-2009.iso /ravi/
+   96  ls
+   97  ls /ravi/
+   98  ls
+   99  rm -f 
+  100  copycds /ravi/CentOS-7-x86_64-DVD-2009.iso 
+  101  lsdef -t osimage
+  102  genimage  centos7.9-x86_64-netboot-compute
+  103  packimage centos7.9-x86_64-netboot-compute
+  104  lsdef -t osimage
+  105  nodels
+  106  lsdef -t node node1
+  107  makehosts
+  108  cat /etc/hosts
+  109  makenetworks
+  110  tabdump networks
+  111  makenetworks
+  112  makedhcp -n
+  113  makedns -n
+  114  cat /var/lib/dhcpd/dhcpd.leases
+  115  cat /etc/dhcp/dhcpd.conf
+  116  tabdum networks
+  117  tabdump networks
+  118  makedhcp -q node01
+  119  makedhcp -q node1
+  120   chdef -t network 10_10_10_0-255_255_255_0 dynamicrange="10.10.10.162-10.10.10.254"
+  121  tabdump networks
+  122  cat /etc/dhcp/dhcpd.conf
+  123  makedhcp -n
+  124  cat /etc/dhcp/dhcpd.conf
+  125  systemctl restart dhcpd
+  126  tailf /var/log/httpd/access_log 
+  127  tailf /var/log/httpd/error_log 
+  128  cat /etc/httpd/conf.d/xcat.conf 
+  129  cat /etc/httpd/conf.d/xcat-ws.conf 
+  130  tabdump site
+  131  tailf /var/log/httpd/error_log 
+  132  tailf /var/log/httpd/access_log 
+  133  firefox -x
+  134  cat /etc/httpd/conf.d/xcat.conf 
+  135  firefox -x
+  136  tailf /var/log/httpd/access_log 
+  137  # chdef -t network 10_10_10_0-255_255_255_0 staticrange="10.10.10.162-10.10.10.254"
+  138  chdef -t network 10_10_10_0-255_255_255_0 staticrange="10.10.10.162-10.10.10.254"
+  139  tabdump networks
+  140  makedhcp -n
+  141  cat /etc/httpd/conf.d/xcat.confconf 
+  142  cat /etc/httpd/conf.d/xcat.confconf 
+  143  cat /etc/dhcp/dhcpd.conf
+  144  systemctl restart dhcpd
+  145  cat /etc/dhcp/dhcpd.conf
+  146  tabdump networks
+  147  ping 10.10.10.163
+  148  ping 10.10.10.164
+  149  chdef -t network 10_10_10_0-255_255_255_0 staticrange=""
+  150  tabdump networks
+  151  makedhcp -n
+  152  systemctl restart dhcpd
+  153  systemctl status dhcpd
+  154  vim /var/lib/dhcpd/dhcpd.leases
+  155  vim /var/lib/dhcpd/dhcpd.leases~
+  156  tailf /var/log/httpd/access_log 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+whiptail --msgbox "Welcome to Setup wizard of xCAT. Press Enter to continue." 10 50
+
 #Disabling Firewall
 systemctl stop firewalld.service; systemctl stop firewalld
 systemctl disable firewalld.service; systemctl disable firewalld
@@ -50,8 +52,18 @@ cd ~/xcat/xcat-dep/
 cd rh7
 cd ppc64le/
 ./mklocalrepo.sh
-source /etc/profile.d/xcat.sh
 
 systemctl start xcatd.service
 systemctl enable xcatd.service
+
+source /etc/profile.d/xcat.sh
+
 systemctl status xcatd.service
+
+reboot
+
+
+
+
+
+

@@ -11,7 +11,8 @@ setenforce 0
 sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/sysconfig/selinux
 
 #Changing HOSTNAME
-hostnamectl set-hostname bigdaddy
+read -p "Provide a name to your master : " hostname_master
+hostnamectl set-hostname $hostname_master
 #exec bash
 
 #Updating yum and Utilities

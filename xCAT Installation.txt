@@ -1,0 +1,272 @@
+
+xCAT installation process
+1) Install CentOs7 version 7.9
+
+hostnamectl set-hostname xCAT
+
+Entry add both machine name and IP address in /etc/hosts file
+vi /etc/hosts
+10.10.10.2 xCAT
+
+vi /etc/selinux/config 
+getenforce 
+init 6
+systemctl stop firewalld.service
+systemctl disable firewalld.service
+systemctl status firewalld.service
+
+yum install yum-utils
+yum install epel-release
+
+yum -y install yum-utils
+wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/latest/xcat-core/xcat-core.repo --no-check-certificate
+
+wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xcat-dep.repo --no-check-certificate
+
+yum -y install xCAT
+
+cat /etc/profile.d/xcat.sh
+
+source /etc/profile.d/xcat.sh
+
+If you want to change master ip in tab site
+
+#chdef -t site xcat=10.10.10.3 comment
+ lsdef -t osimage 
+ lsblk ( If you are not able to see sr0 OS image then check
+         then check DVD is connected or not to Vmware
+
+ dd if=/dev/sr0 of=centos.iso
+ 
+ copycds centos.iso 
+ lsdef -t osimage
+ OS Path ------------>/install/centos7.9/x86_64
+
+ lsdef -t osimage centos7.9-x86_64-netboot-compute
+ genimage centos7.9-x86_64-netboot-compute
+ cd /install/netboot/centos7.9/x86_64/compute/
+ mkdir -p /install/custom/netboot
+ chdef -t osimage centos7.9-x86_64-netboot-compute synclists="/install/custom/netboot/compute.synclist"
+lsdef -t osimage centos7.9-x86_64-netboot-compute
+vim /install/custom/netboot/compute.synclist
+cat /install/custom/netboot/compute.synclist
+lsdef -t osimage
+packimage centos7.9-x86_64-netboot-compute
+
+
+#How to add client node in master server
+#node1
+
+ mkdef -t node cn00 groups=compute,all ip=10.10.10.3 mac=00:0c:29:98:93:43 netboot=xnba
+lsdef cn00
+chdef -t site domain=cdac.in
+tabdump site | grep domain
+makehosts
+vim /etc/hosts
+cat /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+10.10.10.2 xcat xcat.cdac.in (xcat domain added)
+10.10.10.3 cn00 cn00.cdac.in
+
+:wq save file
+
+makenetworks
+makedhcp -n
+cat /etc/dhcp/dhcpd.conf
+makedns -n
+nodeset compute osimage=centos7.9-x86_64-netboot-compute
+
+
+export CHROOT=/install/netboot/centos7.9/x86_64/compute/rootimg
+
+chroot /install/netboot/centos7.9/x86_64/compute/rootimg
+or
+chroot $CHROOT
+[root@xcat ~]# ssh cn00
+Last login: Mon Jun  5 18:27:18 2023
+[root@cn00 ~]# ls
+[root@cn00 ~]# cd /
+[root@cn00 /]# ls
+0    dev  home  lib64  mnt  proc  run   srv  test  usr  xcatpost
+bin  etc  lib   media  opt  root  sbin  sys  tmp   var
+
+
+
+
+
+
+#How to add client node in master server
+#node2
+
+mkdef -t node cn01 groups=compute,all ip=10.10.10.4 mac=00:0C:29:A6:4A:D1 netboot=xnba
+lsdef cn01
+
+chdef -t site domain=cdac.in
+tabdump site | grep domain
+makehosts
+vim /etc/hosts
+cat /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+10.10.10.2 xcat xcat.cdac.in (xcat domain added)
+10.10.10.3 cn00 cn00.cdac.in
+10.10.10.4 cn00 cn01.cdac.in
+
+:wq save file
+
+makenetworks
+makedhcp -n
+cat /etc/dhcp/dhcpd.conf
+makedns -n
+nodeset compute osimage=centos7.9-x86_64-netboot-compute
+
+_________________________________________________________________
+
+mkdef -t osimage -o centos7.9-x86_64-netboot-compute centos7.9-x86_64-netboot-compute.img
+
+-----------------------------------------------------------------
+
+imgexport centos7.9-x86_64-netboot-compute
+ls
+pwd
+mkdef -t osimage -o centos7.9-x86_64-netboot-compute -i centos7.9-x86_64-netboot-compute.img
+mkdef -t osimage -o centos7.9-x86_64-netboot-compute centos7.9-x86_64-netboot-compute.img
+imgimport centos7.9-x86_64-netboot-compute.tgz -f compute-bk
+
+lsdef -t osimage
+
+
+______---------------Node3----------------_______________________________
+
+#How to add client node in master server
+#node2
+
+mkdef -t node cn02 groups=compute,all ip=10.10.10.5 mac=00:0C:29:CC:BB:A0 netboot=xnba
+lsdef cn02
+
+chdef -t site domain=cdac.in
+tabdump site | grep domain
+makehosts
+vim /etc/hosts
+cat /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+10.10.10.2 xcat xcat.cdac.in (xcat domain added)
+10.10.10.3 cn00 cn00.cdac.in
+10.10.10.4 cn00 cn01.cdac.in
+10.10.10.5 cn02 cn02.cdac.in
+
+:wq save file
+
+makenetworks
+makedhcp -n
+cat /etc/dhcp/dhcpd.conf
+makedns -n
+nodeset compute osimage=centos7.9-x86_64-netboot-compute-bk
+
+genimage centos7.9-x86_64-netboot-compute-bk
+packimage centos7.9-x86_64-netboot-compute-bk
+
+***********************************************************
+
+Row IMP details
+how to add any object in tabdump site
+
+tabdump site
+chdef -t site dhcpinterfaces=ens36
+
+restartxcatd --->
+*************************************************************
+
+\\Create XCAT Statefull image\\
+
+lsdef -t osimage centos7.9-x86_64-install-compute
+
+mkdir -p /install/post/otherpkgs/centos7.9/x86_64
+cd /install/post/otherpkgs/centos7.9/x86_64
+
+createrepo .
+
+mkdir /install/custom/netboot/centos/
+vim /install/custom/netboot/centos/otherpkgs.pkglist 
+
+Slurm
+slurm-contribs
+slurm-devel
+slurm-example-configs
+slurm-libpmi
+slurm-openlava
+slurm-pam_slurm
+slurm-perlapi
+slurm-torque
+perl-Switch
+munge
+munge-libs
+munge-devel
+lmod-ohpc
+openldap-clients
+nss-pam-ldapd 
+figlet
+lmodohpc
+prelink
+aide
+iftop
+fail2ban
+rkhunter
+mod_ssl
+beegfs-common
+beegfs-helperd
+beegfs-utils
+beegfs-client
+
+:wq
+
+
+chdef -t osimage centos7.9-x86_64-install-compute otherpkgdir=/install/postotherpkgs/centos7.9-x86_64 otherpkglist=/install/custom/netboot/centos/otherpkgs.pkglist
+
+vim /install/custom/partitionfile
+
+clearpart --all --initlabel --drives=sda,sdb
+volgroup data_vg --pesize=4096 pv.1005
+volgroup os_vg --pesize=4096 pv.452
+part pv.1005 --fstype="lvmpv" --ondisk=sdb --size=5720638
+part /boot/efi --fstype="efi" --ondisk=sda --size=1024 --fsoptions="umask=0077,shortname=winnt"
+part /boot --fstype="xfs" --ondisk=sda --size=10240
+part pv.452 --fstype="lvmpv" --ondisk=sda --size=1132862
+logvol /var  --fstype="xfs" --size=614400 --name=var --vgname=data_vg
+logvol /opt  --fstype="xfs" --size=204800 --name=opt --vgname=data_vg
+logvol /var/log/audit  --fstype="xfs" --size=512000 --name=var_log_audit --vgname=data_vg
+logvol swap  --fstype="swap" --size=49152 --name=swap --vgname=os_vg
+logvol /  --fstype="xfs" --size=1083707 --name=root --vgname=os_vg
+logvol /var/log  --fstype="xfs" --size=4184631 --name=var_log --vgname=data_vg
+logvol /tmp  --fstype="xfs" --size=204800 --name=tmp --vgname=data_vg
+
+:wq
+
+ chdef -t osimage -o centos7.9-x86_64-install-compute partitionfile=/install/custom/partitionfile
+ 
+  chdef -t osimage -o centos7.9-x86_64-install-compute synclists=/install/custom/netboot/centos/login.synclist
+  
+  
+ vim /opt/xcat/share/xcat/install/centos/compute.centos7.tmpl
+ vim /install/postscripts/remoteshell
+  vim /install/postscripts/otherpkgs
+  
+  
+  
+  
+  
+  
+  mkdef -t node cn03 groups=compute,all ip=10.10.10.6 mac=00:0c:29:92:84:3e netboot=xnba
+  
+  chdef cn03 postscripts=syslog,remoteshell,syncfiles,mlnxofed_ib_install -p “/install/custom/MLNX_OFED_LINUX-5.4-3.1.0.0-rhel7.9-x86_64.iso”,”confignetwork –s”,ssh_captcha
+  
+  chdef cn03 postscripts=syslog,remoteshell,syncfiles,mlnxofed_ib_install -p
+  
+  
+ chdef cn03 postscripts=syslog,remoteshell,syncfiles,mlnxofed_ib_install -p
+ makehosts
+makedhcp -n
+ makedns -n
+ makenetworks

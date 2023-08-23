@@ -1,0 +1,114 @@
+    1  ip a
+    4  ifup ens34
+    6  nmtui
+    7  ip a
+    8  systemctl stop firewalld
+    9  systemctl disable firewalld
+   10  vim /etc/selinux/config   (disable selinux)
+   11  vim /etc/resolv.conf       (Host ip of Master)
+   12  hostnamectl set-hostname master    
+   13  vim /etc/hosts
+   14  init 6
+   17  yum update -y
+   18  hostname 
+   21  yum install ntp
+   22  systemctl status firewalld
+   23  yum install yum-utils -y
+   24  wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/latest/xcat-core/xcat-core.repo
+   25  wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/latest/xcat-core/xcat-core.repo --no-check-certificate
+   26  wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xcat-dep.repo
+   27  wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xcat-dep.repo --no-check-certificate
+   28  yum clean all
+   29  yum makecache
+   30  yum install xCAT
+   31  source /etc/profile.d/xcat.sh 
+   32  lsxcatd -a
+   33  tabdump site
+   34  ip r
+   35  chdef -t site domain=hpcsa.in
+   36  chdef -t site dhcpinterfaces=ens34
+   37  tabdump site
+   38  tabdump networks
+   39  chdef -t site dhcpinterfaces='master|ens34'
+   41  cat /etc/dhcp/dhcpd.conf 
+   42  makedhcp -n
+   43  vim /etc/hosts
+   44  vim /etc/resolv.conf 
+   45  makedhcp -n
+   46  tabdump networks
+   47  makedhcp -n
+   48  reboot
+   49  ip a
+   50  nmtui
+   51  ip a
+   52  vim /etc/hosts
+   53  vim /etc/resolv.conf 
+   54  makedhcp -n
+   55  cat /etc/dhcp/dhcpd.conf 
+   56  tabdump site 
+   57  makedhcp -n
+   58  systemctl statuts dhcpd
+   59  systemctl status dhcpd
+   60  makehosts
+   61  makenetworks
+   62  makedns -n
+   63  makentp
+   64  xcatprobe xcatmn
+   65  vim /etc/hosts
+   66  vim /etc/resolv.conf 
+   67  chtab key=system passwd.username=root passwd.password=root
+   68  xcatprobe xcatmn
+   69  xcatprobe xcatmn -i ens34
+   70  tabdump networks
+   71  chdef -t networks -o domain=hpcsa.in
+   72  tabdump networks
+   73  chdef -t network -o 192_168_129_0-255_255_255_0 dhcpserver=hpcsa.in
+   74  chdef -t network -o 192_168_129_0-255_255_255_0 dhcpserver=192.168.130.150
+   75  ip a
+   76  xcatprobe xcatmn
+   77  tabdump site
+   78  tabedit site
+   79  xcatprobe xcatmn
+   80  makedns -n
+   81  xcatprobe xcatmn
+   82  df -Th
+   83  mkdir -p /centos
+   89  mkdef -t node -o node1 groups=all netboot=pxe mac=00:0C:29:88:71:C4 ip=192.168.130.155
+   90  lsdef node1
+   91  makehosts
+   92  makedhcp -d node1
+   93  cat /var/lib/dhcpd/dhcpd.leases
+   94  ls -lrth
+   95  ls -lrth /var/lib/dhcpd
+   96  systemctl status dhcpd
+   97  systemctl restart dhcpd
+   98  systemctl status dhcpd
+  100  lsblk
+  101  dd if=/dev/sr0 of=centos.iso
+  102  lsdef -t osimage
+  103  copycds centos.iso 
+  104  lsdef -t osimage
+  105  lsdef -t osimage centos7.9-x86_64-netboot-compute
+  106  genimage centos7.9-x86_64-netboot-compute
+  107  ll /install/netboot/centos7.9/x86_64/compute/
+  108  packimage centos7.9-x86_64-netboot-compute
+  109  lsdef 
+  111  chdef -t node -o node1 provmethod=centos7.9-x86_64-netboot-compute
+  112  lsdef -t node node1
+  113  nodeset node1 osimage=centos7.9-x86_64-netboot-compute
+  114  makehosts
+  115  makedhcp
+  116  makedhcp -d node1
+  117  systemctl status dhcpd
+  118  ll /var/lib/dhcpd.leases
+  119  systemctl restart dhcpd
+  120  systemctl status dhcpd
+  121  tailf /var/log/messages
+  122  makedhcp -n
+  123  makedns -n
+  124  makenetworks
+  125  makedhcp -n
+  126  makedns -n
+  127  nodeset node1 osimage=centos7.9-x86_64-netboot-compute
+
+       Restart Cluster Node

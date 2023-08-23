@@ -1,0 +1,16 @@
+#!/bin/bash
+read -p "Please provide a name to your node1 : " name_of_node1
+read -p "Please provide the ip which you want it to be assigned to $name_of_node1 : " ip_of_node1
+read -p "Please mention the mac address in of $name_of_node1 in colon-hexadecimal notation : " mac_of_node1
+
+
+mkdef -t node -o $name_of_node1 groups=all netboot=pxe ip=$ip_of_node1 mac=$mac_of_node1 provmethod=centos7.9-x86_64-netboot-compute
+
+makehosts
+makenetworks
+makedhcp -n
+makedns -n
+makentp
+systemctl restart dhcpd
+
+nodeset $name_of_node1 osimage=centos7.9-x86_64-netboot-compute

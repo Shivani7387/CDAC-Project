@@ -1,0 +1,2 @@
+Note you host ip interface
+You must give a static ip to you master node

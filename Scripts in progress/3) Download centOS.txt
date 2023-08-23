@@ -1,0 +1,11 @@
+#!/bin/bash
+wget http://mirrors.nxtgen.com/centos-mirror/7.9.2009/isos/x86_64/CentOS-7-x86_64-DVD-2009.iso
+copycds CentOS-7-x86_64-DVD-2009.iso
+genimage centos7.9-x86_64-netboot-compute
+
+touch /install/netboot/compute.synclists
+echo "/etc/passwd -> /etc/passwd" >> /install/netboot/compute.synclist
+echo "/etc/group -> /etc/group" >> /install/netboot/compute.synclist
+echo "/etc/shadow -> /etc/shadow" >> /install/netboot/compute.synclist
+chdef -t osimage centos7.9-x86_64-netboot-compute synclists="/install/netboot/compute.synclists"
+packimage centos7.9-x86_64-netboot-compute

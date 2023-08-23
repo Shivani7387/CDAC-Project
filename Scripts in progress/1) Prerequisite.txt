@@ -1,0 +1,36 @@
+
+#!/bin/bash
+
+#Disable Firewall
+systemctl stop firewalld.service; systemctl stop firewalld
+systemctl disable firewalld.service; systemctl disable firewalld
+
+#Disable SELINUX
+setenforce 0
+sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/sysconfig/selinux
+
+#Disable DHCP on the interface
+read -p "Please mention the interface of private network : " private_interface
+#sed -i '/BOOTPROTO/d' /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-$private_interface
+
+#Taking inputs Hostname, IP, Domain name
+read -p "Provide a hostname to your master : " hostname_master
+privateip_network=$(ip a show dev $private_interface | grep -oP 'inet \K[\d.]+')                                      
+whiptail --msgbox "Your current Private ip is $privateip_network. Press Enter & retype the same ip LOL." 10 50
+read -p "Retype Private ip of your Master Node : " master_privateip                                 
+read -p "Please provide a domain name --Example 'avicii.in' -- : " domain_name               
+hostnamectl set-hostname $hostname_master.$domain_name		                                                   
+
+#Changing network
+#privateip_network=$(ip a show dev $private_interface | grep -oP 'inet \K[\d.]+')
+#read -p "Provide Private ip to your Master Node : " master_privateip
+#ip addr add $master_privateip/255.255.255.0 dev ens34
+#sed -i 's/IPADDR=$privateip_network/IPADDR=$master_privateip/g' /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#ifdown $private_interface
+#ifup $private_interface
+
+#Assigning values
+echo "$master_privateip $hostname_master $hostname_master.$domain_name" >> /etc/hosts        
+echo nameserver $master_privateip >> /etc/resolv.conf

@@ -1,0 +1,111 @@
+#!/bin/bash
+
+whiptail --msgbox "Welcome to Setup wizard of xCAT. Press Enter to continue." 10 50
+
+# L1
+
+#Disable Firewall
+systemctl stop firewalld.service; systemctl stop firewalld
+systemctl disable firewalld.service; systemctl disable firewalld
+
+#Disable SELINUX
+setenforce 0
+sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/sysconfig/selinux
+
+#Disable DHCP on the interface
+read -p "Please mention the interface of private network : " private_interface
+#sed -i '/BOOTPROTO/d' /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-$private_interface
+
+#Taking inputs Hostname, IP, Domain name
+read -p "Provide a hostname to your master : " hostname_master
+privateip_network=$(ip a show dev $private_interface | grep -oP 'inet \K[\d.]+')                                      
+whiptail --msgbox "Your current Private ip is $privateip_network. Press Enter & retype the same ip LOL." 10 50
+read -p "Retype Private ip of your Master Node : " master_privateip                                 
+read -p "Please provide a domain name --Example 'avicii.in' -- : " domain_name               
+hostnamectl set-hostname $hostname_master.$domain_name		                                                   
+
+#Changing network
+#privateip_network=$(ip a show dev $private_interface | grep -oP 'inet \K[\d.]+')
+#read -p "Provide Private ip to your Master Node : " master_privateip
+#ip addr add $master_privateip/255.255.255.0 dev ens34
+#sed -i 's/IPADDR=$privateip_network/IPADDR=$master_privateip/g' /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#ifdown $private_interface
+#ifup $private_interface
+
+#Assigning values
+echo "$master_privateip $hostname_master $hostname_master.$domain_name" >> /etc/hosts        
+echo nameserver $master_privateip >> /etc/resolv.conf
+
+##################################################################################################
+
+#L2
+
+#Updating yum and Utilities
+yum install ntp -y
+yum update -y
+yum install yum-utils -y
+wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/latest/xcat-core/xcat-core.repo --no-check-certificate
+wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xcat-dep.repo --no-check-certificate
+yum install epel-release -y
+yum clean all
+yum makecache
+yum install xCAT -y
+source /etc/profile.d/xcat.sh
+
+##################################################################################################
+
+#L3
+
+wget http://mirrors.nxtgen.com/centos-mirror/7.9.2009/isos/x86_64/CentOS-7-x86_64-DVD-2009.iso
+copycds CentOS-7-x86_64-DVD-2009.iso
+genimage centos7.9-x86_64-netboot-compute
+
+touch /install/netboot/compute.synclists
+echo "/etc/passwd -> /etc/passwd" >> /install/netboot/compute.synclist
+echo "/etc/group -> /etc/group" >> /install/netboot/compute.synclist
+echo "/etc/shadow -> /etc/shadow" >> /install/netboot/compute.synclist
+chdef -t osimage centos7.9-x86_64-netboot-compute synclists="/install/netboot/compute.synclists"
+packimage centos7.9-x86_64-netboot-compute
+
+##################################################################################################
+
+#L4
+
+#read -p "Provide domain name : " domain_name
+#read -p "Provide hostname masster : " hostname_master
+#read -p "Provide private interface : " private_interface
+chdef -t site domain=$domain_name
+chdef -t site dhcpinterfaces='$hostname_master|$private_interface'
+read -p "Provide Password for all worker nodes : " worker_password
+chtab key=system passwd.username=root passwd.password=$worker_password
+makedhcp -n
+makedns -n
+
+##################################################################################################
+
+#L5
+
+read -p "Please provide a name to your node : " name_of_node1
+read -p "Please provide the ip which you want it to be assigned to $name_of_node1 : " ip_of_node1
+read -p "Please mention the mac address in of $name_of_node1 in colon-hexadecimal notation : " mac_of_node1
+
+
+mkdef -t node -o $name_of_node1 groups=all netboot=pxe ip=$ip_of_node1 mac=$mac_of_node1 provmethod=centos7.9-x86_64-netboot-compute
+
+makehosts
+makenetworks
+makedhcp -n
+makedns -n
+makentp
+systemctl restart dhcpd
+
+nodeset $name_of_node1 osimage=centos7.9-x86_64-netboot-compute
+
+makehosts
+makenetworks
+makedhcp -n
+makedns -n
+makentp
+systemctl restart dhcpd

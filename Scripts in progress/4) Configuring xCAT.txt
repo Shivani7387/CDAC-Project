@@ -1,0 +1,10 @@
+#!/bin/bash
+read -p "Provide domain name : " domain_name
+read -p "Provide hostname masster : " hostname_master
+read -p "Provide private interface : " private_interface
+chdef -t site domain=$domain_name
+chdef -t site dhcpinterfaces='$hostname_master|$private_interface'
+read -p "Provide Password for worker node : " worker_password
+chtab key=system passwd.username=root passwd.password=$worker_password
+makedhcp -n
+makedns -n

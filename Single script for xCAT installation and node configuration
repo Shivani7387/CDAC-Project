@@ -1,5 +1,16 @@
 #!/bin/bash
 
+#PART 0
+
+#!/bin/bash
+
+#user=`whoami`
+#$user ALL=(ALL) NOPASSWD: /home/part0.sh | sudo tee -a /usr/sbin/visudo
+
+
+####################################################################################################################################################################################################
+
+
 #PART 1
 
 whiptail --msgbox "Welcome to Setup wizard of xCAT. Press Enter to continue." 10 50
@@ -63,8 +74,9 @@ hostnamectl set-hostname $hostname_master.$domain_name
 #ifup $private_interface
 
 #Assigning values
-echo "$privateip_network $hostname_master $hostname_master.$domain_name" >> /etc/hosts        
-echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
+echo "$privateip_network $hostname_master $hostname_master.$domain_name" >> /etc/hosts
+#echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
+echo "nameserver $privateip_network" | sudo tee -a /etc/resolv.conf      #This runs but you need to enter password
 
 whiptail --msgbox "Machine needs a reboot, please press Enter to continue." 10 50
 
@@ -72,6 +84,7 @@ reboot
 
 
 ###############################################################################################
+
 
 #PART 2
 
@@ -92,12 +105,21 @@ yum clean all
 yum makecache
 yum install xCAT -y
 #chmod 777 /etc/profile.d/xcat.sh
+
+
+#SOURCE
 xcat_source="source /etc/profile.d/xcat.sh"
 eval "$xcat_source"
-#source /etc/profile.d/xcat.sh
+source /etc/profile.d/xcat.sh
+
+xcat_dot=". /etc/profile.d/xcat.sh"
+eval "$xcat_dot"
+. /etc/profile.d/xcat.sh
+
+
 
 #YOU HAVE TO MANUALLY SOURCE  /etc/profile.d/xcat.sh
-hostname_master=$(zenity --entry --title="source /etc/profile.d/xcat.sh" --text="xCAT has been installed successfully, please type "source /etc/profile.d/xcat.sh", copy it, click on OK and paste it on the terminal to unlock xCAT.")
+hostname_master=$(zenity --entry --title="source /etc/profile.d/xcat.sh" --text="xCAT has been installed successfully, type the command shown on the title on the terminal to unlock xCAT.")
 #whiptail --msgbox "xCAT has been installed successfully, please copy "source /etc/profile.d/xcat.sh" and paste it on the terminal, to unlock xCAT." 10 50
 
 

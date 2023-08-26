@@ -76,7 +76,7 @@ hostnamectl set-hostname $hostname_master.$domain_name
 
 #Assigning values
 echo "$privateip_network $hostname_master $hostname_master.$domain_name" >> /etc/hosts
-echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
+#echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
 #echo "nameserver $privateip_network" | sudo tee -a /etc/resolv.conf      #This runs but you need to enter password
 
 whiptail --msgbox "Machine needs a reboot, please press Enter to continue." 10 50

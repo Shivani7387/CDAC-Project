@@ -1,0 +1,203 @@
+Follow From 
+
+yum install -y nfs-utils
+
+systemctl start nfs-server rpcbind
+systemctl enable nfs-server rpcbind
+
+ssh-keygen
+ssh-copy-id root@node1
+ssh-copy-id root@node2
+
+on master only
+mkdir /home
+chmod 777 /home/
+vi /etc/exports
+/home *(rw,sync,no_root_squash)
+exportfs -avr
+
+on node1 and node2
+mount -t nfs master:/home /home/
+df -Th
+
+on all 3 VM machine
+
+update host files
+yum install epel-release -y
+yum install munge munge-libs munge-devel -y
+
+on master
+rpm -qa | grep munge
+/usr/sbin/create-munge-key -r
+ll /etc/munge/
+scp /etc/munge/munge.key node1:/etc/munge/
+scp /etc/munge/munge.key node2:/etc/munge/
+
+*** on all node1 and node2
+****chown munge:munge /etc/munge/munge.key
+
+on all three machine
+***systemctl start munge
+***systemctl enable munge
+***systemctl status munge
+
+on master
+
+wget https://download.schedmd.com/slurm/slurm-20.11.9.tar.bz2
+
+yum install rpm-build -y
+
+[root@master ~]# rpmbuild -ta slurm-20.11.9.tar.bz2 
+error: Failed build dependencies:
+	python3 is needed by slurm-20.11.9-1.el7.x86_64
+	readline-devel is needed by slurm-20.11.9-1.el7.x86_64
+	perl(ExtUtils::MakeMaker) is needed by slurm-20.11.9-1.el7.x86_64
+	pam-devel is needed by slurm-20.11.9-1.el7.x86_64
+	
+run all 3 machine
+yum install python3 readline-devel perl-ExtUtils-MakeMaker pam-devel gcc mysql-devel -y
+
+then run cmd on master
+rpmbuild -ta slurm-20.11.9.tar.bz2 
+
+on all 3 machine
+export SLURMUSER=900
+groupadd -g $SLURMUSER slurm
+useradd -m -c "SLURM workload manager" -d /var/lib/slurm -u $SLURMUSER -g slurm -s /bin/bash slurm
+
+ON MASTER
+mkdir /home/rpms
+cd /root/rpmbuild/RPMS/x86_64/
+cp * /home/rpms/
+
+
+on all 3 machine
+
+cd /home/rpms/
+yum --nogpgcheck localinstall * -y
+
+TO check packages on all nodes no will be 12
+
+rpm -qa | grep slurm | wc -l
+
+on all 3 machine
+
+mkdir /var/spool/slurm
+chown slurm:slurm /var/spool/slurm
+chmod 755 /var/spool/slurm/
+
+mkdir /var/log/slurm
+chown slurm:slurm /var/log/slurm
+chmod 755 /var/log/slurm/
+chown -R slurm . /var/log/slurm/
+
+on all nodes
+****slurmd -C
+then copy in master slurm.conf
+
+on master
+touch /var/log/slurm/slurmctld.log
+chown slurm:slurm /var/log/slurm/slurmctld.log
+touch /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
+chown slurm: /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
+cp /etc/slurm/slurm.conf.example /etc/slurm/slurm.conf
+vi /etc/slurm/slurm.conf
+ControlMachine=master
+in last line
+# COMPUTE NODES
+#NodeName=linux[1-32] Procs=1 State=UNKNOWN
+NodeName=node1 CPUs=1 Boards=1 SocketsPerBoard=1 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=3770 State=UNKNOWN
+NodeName=node2 CPUs=1 Boards=1 SocketsPerBoard=1 CoresPerSocket=1 ThreadsPerCore=1 RealMemory=3770 State=UNKNOWN
+PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP
+
+scp /etc/slurm/slurm.conf node1:/etc/slurm/
+scp /etc/slurm/slurm.conf node2:/etc/slurm/
+systemctl start slurmctld
+systemctl enable slurmctld
+systemctl status slurmctld
+
+
+
+
+
+
+
+
+
+
+
+On Master
+
+  176  yum install -y nfs-utils
+  177  systemctl start nfs-server rpcbind
+  178  systemctl enable nfs-server rpcbind
+  179  ssh-copy-id root@node1
+  180  mkdir /home
+  181  chmod 777 /home
+  182  vi /etc/exports
+  183  exportfs -avr
+  184  ssh node1
+  185  yum install epel-release -y
+  186  yum install munge munge-libs munge-devel -y
+  187  yum --installroot=/install/netboot/centos7.9/x86_64/compute/rootimg install yum install epel-release -y
+  188  yum --installroot=/install/netboot/centos7.9/x86_64/compute/rootimg install yum install munge munge-libs munge-devel -y
+  189  rpm -qa | grep munge
+  191  scp /etc/munge/munge.key node1:/etc/munge
+  192  yum install epel-release -y
+  193  yum install munge munge-libs munge-devel -y
+  194  ll /etc/munge
+  195  /usr/sbin/create-munge-key -r
+  196  ll /etc/munge/
+  198  scp /etc/munge/munge.key node1:/etc/munge
+  199  ssh node1
+  200  systemctl start munge
+  201  systemctl enable munge
+  202  systemctl status munge
+  203  ssh node1
+  204  wget https://download.schedmd.com/slurm/slurm-20.11.9.tar.bz2
+  205  yum install rpm-build -y
+  206  yum install python3 readline-devel perl-ExtUtils-MakeMaker pam-devel gcc mysq
+  209  yum --installroot=/install/netboot/centos7.9/x86_64/compute/rootimg install yum install python3 readline-devel perl-ExtUtils-MakeMaker pam-devel gcc mysql-devel -y
+  210  rpmbuild -ta slurm-20.11.9.tar.bz2
+  211  export SLURMUSER=900
+  212  groupadd -g $SLURMUSER slurm
+  213  useradd -m -c "SLURM workload manager" -d /var/lib/slurm -u $SLURMUSER -g slurm -s /bin/bash slurm
+  214  ssh node1
+  215  mkdir /home/rpms
+  216  cd /root/rpmbuild/RPMS/x86_64/
+  217  cp * /home/rpms/
+  218  cd
+  219  yum --nogpgcheck localinstall * -y
+  220  cd /home/rpms/
+  221  yum --nogpgcheck localinstall * -y
+  222  rpm -qa | grep slurm | wc -l
+  223  exit
+  224  mkdir /var/spool/slurm
+  225  chown slurm:slurm /var/spool/slurm
+  226  chmod 755 /var/spool/slurm
+  234  vim /etc/slurm/slurm.conf
+  235  systemctl start slurmctld
+  236  systemctl status slurmctld
+  237  systemctl enable slurmctld
+  238  systemctl status slurmctld
+
+
+
+On Client
+    2  mount -t nfs master:/home /home
+    3  df -Th
+    4  cat /etc/hosts
+    6  exit
+    7  systemctl start munge
+    8  exit
+    9  export SLURMUSER=900
+   10  groupadd -g $SLURMUSER slurm
+   11  useradd -m -c "SLURM workload manager" -d /var/lib/slurm -u $SLURMUSER -g slurm -s /bin/bash slurm
+   12  exit
+   13  mkdir /var/spool/slurm
+   14  chown slurm:slurm /var/spool/slurm
+   15  chmod 755 /var/spool/slurm/
+
+
+  
+  

@@ -45,6 +45,7 @@ echo "$hostname_master" > /root/inputs/hostname_master
 
 
 privateip_network=$(ip a show dev $private_interface | grep -oP 'inet \K[\d.]+')
+echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
 touch /root/inputs/private_ip
 echo "$privateip_network" > /root/inputs/private_ip
 
@@ -75,8 +76,8 @@ hostnamectl set-hostname $hostname_master.$domain_name
 
 #Assigning values
 echo "$privateip_network $hostname_master $hostname_master.$domain_name" >> /etc/hosts
-#echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
-echo "nameserver $privateip_network" | sudo tee -a /etc/resolv.conf      #This runs but you need to enter password
+echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
+#echo "nameserver $privateip_network" | sudo tee -a /etc/resolv.conf      #This runs but you need to enter password
 
 whiptail --msgbox "Machine needs a reboot, please press Enter to continue." 10 50
 

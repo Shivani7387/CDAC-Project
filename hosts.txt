@@ -1,0 +1,6 @@
+[nfs-server]
+master
+
+[nfs-clients]
+n1
+n2

@@ -1,0 +1,75 @@
+########### All Machine ##############
+---
+- name: Configure SLURM Control Node
+  hosts: all
+  become: true
+  tasks:
+         # All Machine
+    - name: Install dependency packages
+      yum:
+       name: "{{ item }}"
+       state: present
+      loop:
+        - epel-release
+        - munge
+        - munge-libs
+        - munge-devel
+        - rpm-build
+        - python3
+        - readline-devel
+        - perl-ExtUtils-MakeMaker
+        - pam-devel
+        - gcc
+        - mysql-devel
+
+    - name: Set SLURMUSER Environment Variable
+      set_fact:
+         SLURMUSER: 900
+ 
+    - name: Create SLURM Group
+      command: groupadd -g {{ SLURMUSER }} slurm
+
+    - name: Create SLURM User
+      command: useradd -m -c "SLURM workload manager" -d /var/lib/slurm -u {{ SLURMUSER }} -g slurm -s /bin/bash slurm
+      environment:
+         SLURMUSER: 900
+
+    - name: Create /var/spool/slurm directory and set ownership/permissions
+      block:
+        - file:
+            path: /var/spool/slurm
+            state: directory
+        - file:
+            path: /var/spool/slurm
+            owner: slurm
+            group: slurm
+        - file:
+            path: /var/spool/slurm
+            mode: '0755'
+
+    - name: Create /var/log/slurm directory and set ownership/permissions
+      block:
+        - file:
+            path: /var/log/slurm
+            state: directory
+        - file:
+            path: /var/log/slurm
+            owner: slurm
+            group: slurm
+        - file:
+            path: /var/log/slurm
+            mode: '0755'
+        - command: chown -R slurm:slurm /var/log/slurm
+
+    - name: Copy MUNGE key to remote nodes
+      copy:
+        src: "/etc/munge/munge.key"
+        dest: "/etc/munge/munge.key"
+        mode: 0400
+
+    - name: Start and enable MUNGE service
+      systemd:
+         name: munge
+         state: started
+         enabled: yes
+

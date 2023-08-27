@@ -1,0 +1,231 @@
+################# All Machine #########################
+---
+- name: Configure SLURM Control Node
+  hosts: all
+  become: true
+  vars:
+     target_group: nodes 
+  
+  tasks:
+         # All Machine
+    - name: Install dependency packages`
+      yum:
+       name: "{{ item }}"
+       state: present
+      loop:
+        - epel-release
+        - munge
+        - munge-libs
+        - munge-devel
+        - rpm-build
+        - python3
+        - readline-devel
+        - perl-ExtUtils-MakeMaker
+        - pam-devel
+        - gcc
+        - mysql-devel
+
+
+############## Only Master ##############################
+- name: Configure SLURM Control Node
+  hosts: localhost
+  become: true
+  tasks:
+   
+        # Only Master  
+    - name: Download SLURM tarball
+      get_url:
+        url: https://download.schedmd.com/slurm/slurm-20.11.9.tar.bz2
+        dest: /root/slurm-20.11.9.tar.bz2  # Specify the destination path
+       
+        # Only Master
+    - name: extract SLURM tar file
+      command: rpmbuild -ta /root/slurm-20.11.9.tar.bz2
+
+        # Only Master
+    - name: Create /home/rpms directory
+      file:
+        path: /home/rpms
+        state: directory
+
+        # Only Master
+    - name: Copy RPMs to /home/rpms
+      synchronize:
+        src: /root/rpmbuild/RPMS/x86_64/
+        dest: /home/rpms/
+
+        # Only Master
+    - name: List directory content
+      find:
+        paths: /home/rpms/
+        patterns: "*.rpm"
+      register: rpm_file_result
+
+         # Only Master
+    - name: Install RPM file
+      yum:
+        name: "{{ rpm_file_result.files[0].path }}"
+        state: present
+      when: rpm_file_result.matched > 0
+
+        # Only Master
+    - name: Generate MUNGE key
+      command: /usr/sbin/create-munge-key > /etc/munge/munge.key
+      changed_when: false
+
+############## On nodes ########################      
+- name: Configure SLURM Control Node
+  hosts: nodes
+  become: true
+  tasks:
+        # On nodes
+    - name: Copy MUNGE key to remote nodes
+      copy:
+        src: "/etc/munge/munge.key"
+        dest: "/etc/munge/munge.key"
+        mode: 0400
+
+         # On Nodes    
+    - name: Start and enable MUNGE service
+      systemd:
+         name: munge
+         state: started
+         enabled: yes
+
+########### All Machines ################
+- name: Configure SLURM Control Node
+  hosts: all
+  become: true
+  tasks: 
+        # All Machines
+    - name: Set SLURMUSER Environment Variable
+      set_fact:
+         SLURMUSER: 900
+
+        # All Machines
+    - name: Create SLURM Group
+      command: groupadd -g {{ SLURMUSER }} slurm
+
+        # All Machines
+    - name: Create SLURM User
+      command: useradd -m -c "SLURM workload manager" -d /var/lib/slurm -u {{ SLURMUSER }} -g slurm -s /bin/bash slurm
+      environment:
+         SLURMUSER: 900
+
+        # All Machines
+    - name: Create /var/spool/slurm directory and set ownership/permissions
+      block:
+        - file:
+            path: /var/spool/slurm
+            state: directory
+        - file:
+            path: /var/spool/slurm
+            owner: slurm
+            group: slurm
+        - file:
+            path: /var/spool/slurm
+            mode: '0755'     
+
+        # All Machines
+    - name: Create /var/log/slurm directory and set ownership/permissions
+      block:
+        - file:
+            path: /var/log/slurm
+            state: directory
+        - file:
+            path: /var/log/slurm
+            owner: slurm
+            group: slurm
+        - file:
+            path: /var/log/slurm
+            mode: '0755'
+        - command: chown -R slurm:slurm /var/log/slurm
+
+############# Only Master #######################
+- name: Configure SLURM Control Node
+  hosts: localhost
+  become: true
+  tasks:
+        # Only Master
+    - name: Copy slurm.conf.example to /etc/slurm/slurm.conf
+      copy:
+        src: /etc/slurm/slurm.conf.example
+        dest: /etc/slurm/slurm.conf
+
+        # Only Master
+    - name: Create slurmctld.log
+      file:
+        path: /var/log/slurm/slurmctld.log
+        state: touch
+
+        # Only Master
+    - name: Change ownership of slurmctld.log
+      file:
+        path: /var/log/slurm/slurmctld.log
+        owner: slurm
+        group: slurm
+
+        # Only Master
+    - name: Create slurm_jobacct.log and slurm_jobcomp.log
+      file:
+        path: /var/log/slurm_jobacct.log
+        state: touch
+
+        # Only Master
+    - name: Change ownership of slurm_jobacct.log and slurm_jobcomp.log
+      file:
+        path: /var/log/slurm_jobacct.log
+        owner: slurm
+        group: slurm
+
+        # Only Master
+    - name: Change ownership of slurm_jobcomp.log
+      file:
+        path: /var/log/slurm_jobcomp.log
+        owner: slurm
+
+        # Only Master
+    - name: Edit slurm.conf
+      lineinfile:
+        path: /etc/slurm/slurm.conf
+        regexp: '^ControlMachine='
+        line: 'ControlMachine=master'
+
+        # Only Master
+    - name: Execute Another Playbook on Different Host
+      delegate_to: "{{ groups[target_group][0] }}"
+        run_once: true
+        command: ansible-playbook ./hosts node_info.yml
+        register: node_info_output
+
+        # Only Master
+    - name: Save Playbook Output to File
+      delegate_to: localhost
+      local_action:
+        module: copy
+        content: "{{ node_info_output.stdout }}"
+        dest: ./node_info.txt
+
+        # Only Master
+    - name: Remove last 2 lines from file
+      ansible.builtin.lineinfile:
+        path: /path/to/your/file.txt
+        regexp: '^.*$'
+        backrefs: yes
+        state: absent
+        before: -2
+ 
+        # Only Master
+    - name: Append Playbook Output to File
+      shell: "echo '{{ node_info_output.stdout }}' >> /etc/slurm/slurm.conf"
+      delegate_to: localhost    
+
+        # Only Master
+    - name: Get last line of the file
+      ansible.builtin.shell: tail -n 1 /path/to/your/file.txt
+      register: last_line
+
+        # Only Master
+    - name: Edit last line in the file
+      ansible.builtin.shell: echo "{{ last_line.stdout | regex_replace('old_pattern', 'new_content') }}" > /tmp/temp_file && mv /tmp/temp_file /etc/slurm.slurm.conf
+

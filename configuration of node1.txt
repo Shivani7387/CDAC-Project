@@ -1,0 +1,57 @@
+#!/bin/bash
+
+#This will create a bootable .iso file of current OS
+copycds /dev/sr0
+dd if=/dev/sr0 of=centos.iso
+
+#mkdir -P /install/custom/netboot
+#touch compute.synclist
+
+#provide a domain name
+read -p "Please provide your domain name --Example 'avicii.in' -- : " domain_name
+
+#Catch HOSTNAME & IP of master
+hostname_master=$(hostname)
+ip_master=$(ip a show dev ens34 | grep -oP 'inet \K[\d.]+')
+
+#Adding entries in /etc/hosts
+echo "$ip_master $hostname_master" >> /etc/hosts
+
+#Configuration of node1
+read -p "Please provide a name to your node1 : " name_of_node1
+read -p "Please provide the ip which you want it to be assigned to $name_of_node1 : " ip_of_node1
+read -p "Please mention the mac address in of $name_of_node1 in colon-hexadecimal notation : " mac_of_node1
+
+#UNDERTRIAL STUFF
+#read -p "Range of ip : " range_of_ip
+#chdef -t network 10_10_10_0-255_255_255_0 dynamicrange="10.10.10.162-10.10.10.254"
+
+#modifying definations of xCAT
+chdef -t site master=$ip_master
+chdef -t site nameservers=$ip_master
+chdef -t site forwarders=$ip_master
+
+#chdef -t osimage -o centos7.9-x86_64-netboot-compute
+#chdef -t osimage -o centos7.9-x86_64-netboot-compute synclists=/install/custom/netboot/compute.synclist
+
+#IF NODE BOOTING IS SUCCESSFUL, WORK ON THIS
+#echo "/etc/passwd -> /etc/passwd" > /install/custom/netboot/compute.synclist
+#echo "/etc/group -> /etc/group" > /install/custom/netboot/compute.synclist
+#echo "/etc/shadow -> /etc/shadow" > /install/custom/netboot/compute.synclist
+
+genimage centos7.9-x86_64-netboot-compute
+packimage centos7.9-x86_64-netboot-compute
+
+mkdef -t node $name_of_node1 groups=compute,all ip=$ip_of_node1 mac=$mac_of_node1 netboot=xnba
+
+
+
+#Final step before starting worker node
+chdef -t site domain=$domain_name
+makehosts
+makenetworks
+makedhcp -n
+makedns -n
+nodeset compute osimage=centos7.9-x86_64-netboot-compute
+
+systemctl restart dhcpd

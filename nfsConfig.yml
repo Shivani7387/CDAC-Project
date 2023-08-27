@@ -1,0 +1,47 @@
+---
+- name: Set up NFS server and client
+  hosts: nodes 
+  become: true
+
+  tasks:
+    - name: Install NFS utilities
+      yum:
+        name: nfs-utils
+        state: present
+
+    - name: Start and enable NFS server and RPC bind
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - nfs-server
+        - rpcbind
+
+    - name: Create /home directory
+      file:
+        path: /home
+        state: directory
+
+    - name: Set permissions on /home directory
+      file:
+        path: /home
+        mode: '0777'
+        recurse: yes
+
+    - name: Add export configuration to /etc/exports
+      lineinfile:
+        path: /etc/exports
+        line: "/home *(rw,sync,no_root_squash)"
+
+    - name: Export filesystems
+      command: exportfs -avr
+
+    - name: Mount NFS share
+      delegate_to: n4
+      become: true
+      command: mount -t nfs localhost:/home /home/
+      ignore_errors: yes  # Ignore errors if the mount is already established
+
+    - name: Check mounted filesystem
+      command: df -Th

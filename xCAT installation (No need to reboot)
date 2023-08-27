@@ -154,8 +154,13 @@ eval "$xcat_dot"
 
 
 #YOU HAVE TO MANUALLY SOURCE  /etc/profile.d/xcat.sh
-hostname_master=$(zenity --entry --title="source /etc/profile.d/xcat.sh" --text="xCAT has been installed successfully, type the command shown on the title on the terminal to unlock xCAT.")
+#hostname_master=$(zenity --entry --title="source /etc/profile.d/xcat.sh" --text="xCAT has been installed successfully, type the command shown on the title on the terminal to unlock xCAT.")
 #whiptail --msgbox "xCAT has been installed successfully, please copy "source /etc/profile.d/xcat.sh" and paste it on the terminal, to unlock xCAT." 10 50
+
+
+source_command=$(zenity --entry --title "Unlocking xCAT" --text "Please type source /etc/profile.d/xcat.sh and click OK to unlock xCAT")
+output=$(gnome-terminal -- bash -c "$source_command; echo -e '\nPress Enter to exit...'; read")
+zenity --text-info --title "Command Output" --width 800 --height 400 --filename=<(echo "$output")
 
 
 ###############################################################################################

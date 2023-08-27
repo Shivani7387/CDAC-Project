@@ -1,0 +1,242 @@
+#!/bin/bash
+
+#PART 0
+
+#!/bin/bash
+
+#user=`whoami`
+#$user ALL=(ALL) NOPASSWD: /home/part0.sh | sudo tee -a /usr/sbin/visudo
+
+
+####################################################################################################################################################################################################
+
+
+#PART 1
+
+whiptail --msgbox "Welcome to Setup wizard of xCAT. Press Enter to continue." 10 50
+yum install zenity -y
+
+
+#Disable Firewall
+systemctl stop firewalld.service; systemctl stop firewalld
+systemctl disable firewalld.service; systemctl disable firewalld
+
+#Disable SELINUX
+setenforce 0
+sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/sysconfig/selinux
+
+#Disable DHCP on the interface
+private_interface=$(zenity --entry --title="Private network's interface required" --text="Please mention the interface of private network : ")
+mkdir -p /root/inputs
+touch /root/inputs/private_interface
+echo "$private_interface" > /root/inputs/private_interface
+
+
+#read -p "Please mention the interface of private network : " private_interface
+#sed -i '/BOOTPROTO/d' /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-$private_interface
+
+#Taking inputs Hostname, IP, Domain name
+
+hostname_master=$(zenity --entry --title="Hostname required" --text="Provide a hostname to your master.")
+touch /root/inputs/hostname_master
+echo "$hostname_master" > /root/inputs/hostname_master
+#read -p "Provide a hostname to your master : " hostname_master
+
+
+privateip_network=$(ip a show dev $private_interface | grep -oP 'inet \K[\d.]+')
+echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
+touch /root/inputs/private_ip
+echo "$privateip_network" > /root/inputs/private_ip
+
+zenity \
+--info \
+--text="current ip is $privateip_network.\n DO NOT CHANGE THE IP" \
+--title="xCAT setup" \
+--ok-label="OK"
+                                   
+#whiptail --msgbox "Your current Private ip is $privateip_network. Press Enter & retype the same ip LOL." 10 50
+#read -p "Retype Private ip of your Master Node : " master_privateip
+       
+domain_name=$(zenity --entry --title="Domain name required" --text="Please provide a domain name.")
+touch /root/inputs/domain_name
+echo "$domain_name" > /root/inputs/domain_name
+                          
+#read -p "Please provide a domain name --Example 'avicii.in' -- : " domain_name               
+hostnamectl set-hostname $hostname_master.$domain_name		                                                   
+
+state_file="script_state.txt"
+
+if [ -e "$state_file" ]; then
+    # Continue from the saved state
+    saved_line=$(cat "$state_file")
+#    echo "Resuming from line: $saved_line"
+    # Continue your script logic here starting from the saved line
+
+    # For demonstration, let's say the script is paused at line 10
+    # Uncomment the line below to simulate continuing from line 11
+     ((saved_line++))
+else
+    echo "Starting the script"
+    saved_line=1
+fi
+
+# Your script logic here
+for ((i = $saved_line; i <= 20; i++)); do
+#    echo "Processing line: $i"
+    # Save the current line to the state file before restarting
+    echo "$i" > "$state_file"
+
+    # Simulate a restart
+    if [ "$i" -eq 10 ]; then
+        echo "Restarting the script"
+        exec bash
+    fi
+done
+
+# Cleanup: remove the state file at the end
+#rm "$state_file"
+#echo "Script finished"
+
+
+
+#Changing network
+#privateip_network=$(ip a show dev $private_interface | grep -oP 'inet \K[\d.]+')
+#read -p "Provide Private ip to your Master Node : " master_privateip
+#ip addr add $master_privateip/255.255.255.0 dev ens34
+#sed -i 's/IPADDR=$privateip_network/IPADDR=$master_privateip/g' /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#ifdown $private_interface
+#ifup $private_interface
+
+#Assigning values
+echo "$privateip_network $hostname_master $hostname_master.$domain_name" >> /etc/hosts
+#echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
+#echo "nameserver $privateip_network" | sudo tee -a /etc/resolv.conf      #This runs but you need to enter password
+
+whiptail --msgbox "Machine needs a reboot, please press Enter to continue." 10 50
+
+
+
+###############################################################################################
+
+
+#PART 2
+
+
+#!/bin/bash
+
+
+#Updating yum and Utilities
+yum install zenity -y
+yum install xterm -y
+yum install ntp -y
+yum update -y
+yum install yum-utils -y
+wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/latest/xcat-core/xcat-core.repo --no-check-certificate
+wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xcat-dep.repo --no-check-certificate
+yum install epel-release -y
+yum clean all
+yum makecache
+yum install xCAT -y
+#chmod 777 /etc/profile.d/xcat.sh
+
+
+#SOURCE
+xcat_source="source /etc/profile.d/xcat.sh"
+eval "$xcat_source"
+source /etc/profile.d/xcat.sh
+
+xcat_dot=". /etc/profile.d/xcat.sh"
+eval "$xcat_dot"
+. /etc/profile.d/xcat.sh
+
+
+
+#YOU HAVE TO MANUALLY SOURCE  /etc/profile.d/xcat.sh
+hostname_master=$(zenity --entry --title="source /etc/profile.d/xcat.sh" --text="xCAT has been installed successfully, type the command shown on the title on the terminal to unlock xCAT.")
+#whiptail --msgbox "xCAT has been installed successfully, please copy "source /etc/profile.d/xcat.sh" and paste it on the terminal, to unlock xCAT." 10 50
+
+
+###############################################################################################
+
+#PART 3
+
+
+#!/bin/bash
+
+
+#wget http://mirrors.nxtgen.com/centos-mirror/7.9.2009/isos/x86_64/CentOS-7-x86_64-DVD-2009.iso
+copycds CentOS-7-x86_64-DVD-2009.iso
+genimage centos7.9-x86_64-netboot-compute
+
+touch /install/netboot/compute.synclists
+echo "/etc/passwd -> /etc/passwd" >> /install/netboot/compute.synclist
+echo "/etc/group -> /etc/group" >> /install/netboot/compute.synclist
+echo "/etc/shadow -> /etc/shadow" >> /install/netboot/compute.synclist
+
+path_of_computelist="\"/install/netboot/compute.synclists\""
+compute_list="chdef -t osimage centos7.9-x86_64-netboot-compute synclists=$path_of_computelist"
+eval "$compute_list"
+
+#chdef -t osimage centos7.9-x86_64-netboot-compute synclists="/install/netboot/compute.synclists" #This does not run in bash
+packimage centos7.9-x86_64-netboot-compute
+
+
+###############################################################################################
+
+#PART 4
+
+
+#!/bin/bash
+
+domain_name=`cat /root/inputs/domain_name`
+hostname_master=`cat /root/inputs/hostname_master`
+private_interface=`cat /root/inputs/private_interface`
+private_ip=`cat /root/inputs/private_ip`
+
+chdef -t site domain=$domain_name
+dhcpinterfaces="chdef -t site dhcpinterfaces='$hostname_master|$private_interface'"
+eval "$dhcpinterfaces"
+worker_password=$(zenity --entry --title="Password" --text="Provide a common password for all worker nodes : ")
+#read -p "Provide Password for worker node : " worker_password
+passwd="chtab key=system passwd.username=root passwd.password=$worker_password"
+eval "$passwd"
+#chtab key=system passwd.username=root passwd.password=$worker_password
+makedhcp -n
+makedns -n
+makentp
+systemctl restart dhcpd
+
+
+###############################################################################################
+
+
+#PART 5
+
+#!/bin/bash
+
+name_of_node=$(zenity --entry --title="Node name required" --text="Please provide a name to your node : ")
+#read -p "Please provide a name to your node : " name_of_node
+ip_of_node=$(zenity --entry --title="ip required" --text="Please provide the ip which you want it to be assigned to $name_of_node1 : ")
+#read -p "Please provide the ip which you want it to be assigned to $name_of_node1 : " ip_of_node
+mac_of_node=$(zenity --entry --title="ip required" --text="Please mention the mac address of $name_of_node in colon-hexadecimal notation : ")
+#read -p "Please mention the mac address in of $name_of_node1 in colon-hexadecimal notation : " mac_of_node
+
+
+mkdef -t node -o $name_of_node groups=all netboot=pxe ip=$ip_of_node mac=$mac_of_node provmethod=centos7.9-x86_64-netboot-compute
+
+#echo "$ip_of_node $name_of_node $name_of_node.$domain_name" >> /etc/hosts        
+#echo "nameserver $master_privateip" >> /etc/resolv.conf
+
+
+makehosts
+makenetworks
+makedhcp -n
+makedns -n
+makentp
+systemctl restart dhcpd
+
+nodeset $name_of_node osimage=centos7.9-x86_64-netboot-compute
+
+whiptail --msgbox " $name_of_node is ready, please start the machine . Press Enter to continue." 10 50

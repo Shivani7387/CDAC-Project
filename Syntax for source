@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Use Zenity to get user input (command)
+command=$(zenity --entry --title "Run Command" --text "Enter the command:")
+
+# Check if a command was provided
+if [[ -z "$command" ]]; then
+    zenity --error --text "No command provided. Exiting."
+    exit 1
+fi
+
+# Execute the command in a terminal and capture its output
+output=$(gnome-terminal -- bash -c "$command; echo -e '\nPress Enter to exit...'; read")
+
+# Display the output in a Zenity dialog
+zenity --text-info --title "Command Output" --width 800 --height 400 --filename=<(echo "$output")

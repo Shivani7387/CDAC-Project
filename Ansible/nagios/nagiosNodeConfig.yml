@@ -1,0 +1,14 @@
+---
+- name: Start and Enable NRPE service
+  hosts: nodes
+  become: yes  # This allows Ansible to execute commands with root privileges (sudo)
+  tasks:
+    - name: Start NRPE service
+      systemd:
+        name: nrpe
+        state: started
+
+    - name: Enable NRPE service at boot
+      systemd:
+        name: nrpe
+        enabled: yes

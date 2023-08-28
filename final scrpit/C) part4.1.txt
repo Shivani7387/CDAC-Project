@@ -1,0 +1,3 @@
+#!/bin/bash
+
+packimage centos7.9-x86_64-netboot-compute

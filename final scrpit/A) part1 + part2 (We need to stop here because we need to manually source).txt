@@ -1,0 +1,174 @@
+#PART 1
+#!/bin/bash
+
+
+whiptail --msgbox "Welcome to Setup wizard of xCAT. Press Enter to continue." 10 50
+yum install zenity -y
+
+
+#Disable Firewall
+systemctl stop firewalld.service; systemctl stop firewalld
+systemctl disable firewalld.service; systemctl disable firewalld
+
+#Disable SELINUX
+setenforce 0
+sed -i 's/^SELINUX=.*/SELINUX=disabled/g' /etc/sysconfig/selinux
+
+#Disable DHCP on the interface
+private_interface=$(zenity --entry --title="Private network's interface required" --text="Please mention the interface of private network : ")
+mkdir -p /root/inputs
+touch /root/inputs/private_interface
+echo "$private_interface" > /root/inputs/private_interface
+
+
+#read -p "Please mention the interface of private network : " private_interface
+#sed -i '/BOOTPROTO/d' /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-$private_interface
+
+#Taking inputs Hostname, IP, Domain name
+
+hostname_master=$(zenity --entry --title="Hostname required" --text="Provide a hostname to your master.")
+touch /root/inputs/hostname_master
+echo "$hostname_master" > /root/inputs/hostname_master
+#read -p "Provide a hostname to your master : " hostname_master
+
+
+privateip_network=$(ip a show dev $private_interface | grep -oP 'inet \K[\d.]+')
+echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
+touch /root/inputs/private_ip
+echo "$privateip_network" > /root/inputs/private_ip
+
+zenity \
+--info \
+--text="current ip is $privateip_network.\n DO NOT CHANGE THE IP" \
+--title="xCAT setup" \
+--ok-label="OK"
+                                   
+#whiptail --msgbox "Your current Private ip is $privateip_network. Press Enter & retype the same ip LOL." 10 50
+#read -p "Retype Private ip of your Master Node : " master_privateip
+       
+domain_name=$(zenity --entry --title="Domain name required" --text="Please provide a domain name.")
+touch /root/inputs/domain_name
+echo "$domain_name" > /root/inputs/domain_name
+                          
+#read -p "Please provide a domain name --Example 'avicii.in' -- : " domain_name               
+hostnamectl set-hostname $hostname_master.$domain_name		                                                   
+
+state_file="script_state.txt"
+
+if [ -e "$state_file" ]; then
+    # Continue from the saved state
+    saved_line=$(cat "$state_file")
+#    echo "Resuming from line: $saved_line"
+    # Continue your script logic here starting from the saved line
+
+    # For demonstration, let's say the script is paused at line 10
+    # Uncomment the line below to simulate continuing from line 11
+     ((saved_line++))
+else
+    echo "Starting the script"
+    saved_line=1
+fi
+
+# Your script logic here
+for ((i = $saved_line; i <= 20; i++)); do
+#    echo "Processing line: $i"
+    # Save the current line to the state file before restarting
+    echo "$i" > "$state_file"
+
+    # Simulate a restart
+    if [ "$i" -eq 10 ]; then
+        echo "Restarting the script"
+        exec bash
+    fi
+done
+
+# Cleanup: remove the state file at the end
+#rm "$state_file"
+#echo "Script finished"
+
+
+
+#Changing network
+#privateip_network=$(ip a show dev $private_interface | grep -oP 'inet \K[\d.]+')
+#read -p "Provide Private ip to your Master Node : " master_privateip
+#ip addr add $master_privateip/255.255.255.0 dev ens34
+#sed -i 's/IPADDR=$privateip_network/IPADDR=$master_privateip/g' /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-$private_interface
+#ifdown $private_interface
+#ifup $private_interface
+
+#Assigning values
+echo "$privateip_network $hostname_master $hostname_master.$domain_name" >> /etc/hosts
+#echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
+#sed -i "\$a nameserver $ip" /etc/resolv.conf #try, this might run in bash
+echo "nameserver $privateip_network" | sudo tee -a /etc/resolv.conf      #This runs but you need to enter password
+
+#whiptail --msgbox "Machine needs a reboot, please press Enter to continue." 10 50
+
+
+#Updating yum and Utilities
+yum install zenity -y
+yum install xterm -y
+yum install ntp -y
+yum update -y
+yum install yum-utils -y
+#wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/latest/xcat-core/xcat-core.repo --no-check-certificate
+#wget -P /etc/yum.repos.d https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xcat-dep.repo --no-check-certificate
+yum install epel-release -y
+yum clean all
+yum makecache
+
+#Making xcat directory which will contain xcat-core and xcat-dep
+mkdir -p ~/xcat
+cd ~/xcat/
+
+#downloading xCAT
+wget https://raw.githubusercontent.com/xcat2/xcat-core/master/xCAT-server/share/xcat/tools/go-xcat -O - >/tmp/go-xcat
+chmod +x /tmp/go-xcat
+
+#This will install xcat
+/tmp/go-xcat install -y
+wget https://xcat.org/files/xcat/xcat-core/2.16.x_Linux/xcat-core/xcat-core-2.16.5-linux.tar.bz2
+wget https://xcat.org/files/xcat/xcat-dep/2.x_Ubuntu/?C=M;O=D
+wget https://xcat.org/files/xcat/xcat-dep/2.x_Linux/xcat-dep-202212061505.tar.bz2
+
+#Extracting xcat-core
+tar xvf xcat-core-2.16.5-linux.tar.bz2
+tar jxvf xcat-dep-202212061505.tar.bz2
+cd ~/xcat/xcat-core
+./mklocalrepo.sh
+
+# Inside xcat-dep
+
+cd ~/xcat/xcat-dep/
+cd rh7
+cd ppc64le/
+./mklocalrepo.sh
+
+
+#yum install xCAT -y
+#chmod 777 /etc/profile.d/xcat.sh
+
+
+#SOURCE
+xcat_source="source /etc/profile.d/xcat.sh"
+eval "$xcat_source"
+source /etc/profile.d/xcat.sh
+
+xcat_dot=". /etc/profile.d/xcat.sh"
+eval "$xcat_dot"
+. /etc/profile.d/xcat.sh
+
+
+#YOU HAVE TO MANUALLY SOURCE  /etc/profile.d/xcat.sh
+#hostname_master=$(zenity --entry --title="source /etc/profile.d/xcat.sh" --text="xCAT has been installed successfully, type the command shown on the title on the terminal to unlock xCAT.")
+#whiptail --msgbox "xCAT has been installed successfully, please copy "source /etc/profile.d/xcat.sh" and paste it on the terminal, to unlock xCAT." 10 50
+
+
+source_command=$(zenity --entry --title "Unlocking xCAT" --text "Please type source /etc/profile.d/xcat.sh and click OK to unlock xCAT")
+output=$(gnome-terminal -- bash -c "$source_command; echo -e '\nPress Enter to exit...'; read")
+zenity --text-info --title "Command Output" --width 800 --height 400 --filename=<(echo "$output")
+
+
+

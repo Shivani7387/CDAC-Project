@@ -126,28 +126,29 @@ echo "$BASEDOMAIN_CONTENT" > basedomain.ldif
 
 
 user_id=$(zenity --entry --title="User ID" --text="Please provide a user id : ")
-group_id=$(zenity --entry --title="Group ID" --text="Please provide a group id : ")
-cn_ldapuser=$(zenity --entry --title="organizational Unit" --text="Please provide a common name for basedomain : ")
+#group_id=$(zenity --entry --title="Group ID" --text="Please provide a group id : ")
+#cn_ldapuser=$(zenity --entry --title="organizational Unit" --text="Please provide a common name for basedomain : ")
 
 
 LDAPUSER_CONTENT=$(cat <<EOF
-dn: uid=$user_id,ou=$organizational_unit,dc=$dom,dc=$dot_what
+dn: uid=hpcsa1,ou=People,dc=hpcsa,dc=in
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: shadowAccount
-cn: $cn_ldapuser
+cn: hpcsa1
 sn: Linux
 userPassword: $hashed_password
 loginShell: /bin/bash
 uidNumber: $user_id
-gidNumber: $group_id
-homeDirectory: /home/$cn_ldapuser
+gidNumber: 1003
+homeDirectory: /home/hpcsa1
 
-dn: cn=$cn_ldapuser,ou=$organizational_unit,dc=$dom,dc=$dot_what
+dn: cn=hpcsa1,ou=Group,dc=hpcsa,dc=in
 objectClass: posixGroup
-cn: $cn_ldapuser
-gidNumber: $group_id
-memberUid: $cn_ldapuser
+cn: hpcsa1
+gidNumber: 1003
+memberUid: hpcsa1
+
 EOF
 )
 

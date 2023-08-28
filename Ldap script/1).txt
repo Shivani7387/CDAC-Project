@@ -1,0 +1,167 @@
+#!/bin/bash
+
+
+yum -y install openldap-servers openldap-clients
+cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
+chown ldap. /var/lib/ldap/DB_CONFIG
+
+#slappasswd
+
+# Use Zenity to prompt for password
+password=$(zenity --password --title "Enter Password")
+
+# Check if password was provided
+if [[ -z "$password" ]]; then
+    zenity --error --text "No password provided. Exiting."
+    exit 1
+fi
+
+# Use the provided password with slappasswd
+hashed_password=$(echo -e "$password\n$password" | slappasswd -T /dev/stdin)
+
+# Display the hashed password
+zenity --info --title "Hashed Password" --text "Hashed Password: $hashed_password"
+
+#touch chrootpw.ldif
+#echo "dn: olcDatabase={0}config,cn=config" > chrootpw.ldif
+#echo "changetype: modify" >> chrootpw.ldif
+#echo "add: olcRootPW" >> chrootpw.ldif
+#echo "$hashed_password" > chrootpw.ldif
+
+
+LDIF_CONTENT=$(cat <<EOF
+dn: olcDatabase={0}config,cn=config
+changetype: modify
+add: olcRootPW
+EOF
+)
+
+# Create the file and add LDIF content
+echo "$LDIF_CONTENT" > chrootpw.ldif
+echo "olcRootPW:$hashed_password" >> chrootpw.ldif
+
+
+ldapadd -Y EXTERNAL -H ldapi:/// -f chrootpw.ldif
+
+#Schema
+ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/cosine.ldif
+ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/nis.ldif
+ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/inetorgperson.ldif
+
+
+
+
+
+
+
+
+dom=$(tail -1 /etc/hosts | awk '{ print $3 }' | awk -F '.' '{print $2}') #domain
+dot_what=$(tail -1 /etc/hosts | awk '{ print $3 }' | awk -F '.' '{print $3}') #in
+#demo_input=$(zenity --entry --title="Password" --text="Demo password : ")
+#demo_input=(zenity --entry --title="Password" --text="Demo password: ")
+
+
+DOMAIN_CONTENT=$(cat <<EOF
+dn: olcDatabase={1}monitor,cn=config
+changetype: modify
+replace: olcAccess
+olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth"
+  read by dn.base="cn=Manager,dc=$dom,dc=$dot_what" read by * none
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcSuffix
+olcSuffix: dc=$dom,dc=$dot_what
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcRootDN
+olcRootDN: cn=Manager,dc=$dom,dc=$dot_what
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+add: olcRootPW
+olcRootPW: $hashed_password
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+add: olcAccess
+olcAccess: {0}to attrs=userPassword,shadowLastChange by
+dn="cn=Manager,dc=$dom,dc=$dot_what" write by anonymous auth by self write by * none
+olcAccess: {1}to dn.base="" by * read
+olcAccess: {2}to * by dn="cn=Manager,dc=$dom,dc=$dot_what" write by * read
+EOF
+)
+
+echo "$DOMAIN_CONTENT" > chdomain.ldif
+
+
+ldapmodify -Y EXTERNAL -H ldapi:/// -f chdomain.ldif
+
+
+
+organizational_unit=$(zenity --entry --title="organizational Unit" --text="Please provide organizational unit : ")
+cn_basedomain=$(zenity --entry --title="organizational Unit" --text="Please provide a common name for basedomain : ")
+BASEDOMAIN_CONTENT=$(cat <<EOF
+dn: dc=$dom,dc=$dot_what
+objectClass: top
+objectClass: dcObject
+objectclass: organization
+o: $dom $dot_what
+dc: $dom
+
+dn: cn=$cn_basedomain,dc=$dom,dc=$dot_what
+objectClass: organizationalRole
+cn: Manager
+description: Directory Manager
+
+dn: ou=$organizational_unit,dc=$dom,dc=$dot_what
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=$organizational_unit,dc=$dom,dc=$dot_what
+objectClass: organizationalUnit
+ou: Group
+EOF
+)
+
+echo "$BASEDOMAIN_CONTENT" > basedomain.ldif
+
+
+user_id=$(zenity --entry --title="User ID" --text="Please provide a user id : ")
+group_id=$(zenity --entry --title="Group ID" --text="Please provide a group id : ")
+cn_ldapuser=$(zenity --entry --title="organizational Unit" --text="Please provide a common name for basedomain : ")
+
+
+LDAPUSER_CONTENT=$(cat <<EOF
+dn: uid=$user_id,ou=$organizational_unit,dc=$dom,dc=$dot_what
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: $cn_ldapuser
+sn: Linux
+userPassword: $hashed_password
+loginShell: /bin/bash
+uidNumber: $user_id
+gidNumber: $group_id
+homeDirectory: /home/$cn_ldapuser
+
+dn: cn=$cn_ldapuser,ou=$organizational_unit,dc=$dom,dc=$dot_what
+objectClass: posixGroup
+cn: $cn_ldapuser
+gidNumber: $group_id
+memberUid: $cn_ldapuser
+EOF
+)
+
+echo "$LDAPUSER_CONTENT" > ldapuser.ldif
+
+ldapadd -x -D cn=Manager,dc=hpcsa,dc=in -W -f ldapuser.ldif
+systemctl start slapd
+systemctl status slapd
+yum install -y openldap-clients nss-pam-ldapd
+yum --installroot=/install/netboot/centos7.9/x86_64/compute/rootimg/ install openldap-clients
+exports CHROOT=/install/netboot/centos7.9/x86_64/compute/rootimg
+export CHROOT=/install/netboot/centos7.9/x86_64/compute/rootimg
+echo $CHROOT
+chroot $CHROOT

@@ -1,0 +1,16 @@
+---
+- name: Edit the slurm.conf
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Run command using command module
+      command: cat /tmp/node_output.txt
+      register: out
+
+    - name: Append text using lineinfile
+      lineinfile:
+        path: /tmp/node_output.txt
+        line: " State=UNKNOWN"
+        insertafter: EOF
+   - name: Fetch file from remote host
+     command: cat node_output.txt >> /etc/slurm/slurm.conf

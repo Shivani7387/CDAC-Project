@@ -1,0 +1,18 @@
+########### All Machine ##############
+---
+- name: Configure SLURM Control Node
+  hosts: all
+  become: true
+  tasks:
+    - name: Copy MUNGE key to remote nodes
+      copy:
+        src: "/etc/munge/munge.key"
+        dest: "/etc/munge/munge.key"
+        mode: 0400
+
+    - name: Start and enable MUNGE service
+      systemd:
+         name: munge
+         state: started
+         enabled: yes
+

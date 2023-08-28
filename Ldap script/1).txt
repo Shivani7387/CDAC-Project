@@ -156,7 +156,7 @@ EOF
 
 echo "$LDAPUSER_CONTENT" > ldapuser.ldif
 
-ldapadd -x -D cn=Manager,dc=hpcsa,dc=in -W -f ldapuser.ldif
+ldapadd -x -D cn=Manager,dc=$dom,dc=$dot_what -W -f ldapuser.ldif
 systemctl start slapd
 systemctl status slapd
 yum install -y openldap-clients nss-pam-ldapd

@@ -3,7 +3,6 @@ yum install zenity -y
 zenity --info --text "Welcome to the xCAT Setup Wizard. Click OK to continue." --title "xCAT Setup" --width=400
 
 
-
 #Disable Firewall
 systemctl stop firewalld.service; systemctl stop firewalld
 systemctl disable firewalld.service; systemctl disable firewalld

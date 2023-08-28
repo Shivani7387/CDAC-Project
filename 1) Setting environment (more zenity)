@@ -130,3 +130,7 @@ echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not ru
 #echo "nameserver $privateip_network" | sudo tee -a /etc/resolv.conf      #This runs but you need to enter password
 
 #whiptail --msgbox "Machine needs a reboot, please press Enter to continue." 10 50
+
+
+
+

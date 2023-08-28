@@ -49,8 +49,8 @@ echo "$privateip_network" > /root/inputs/private_ip
 
 zenity \
 --info \
---text="current ip is $privateip_network.\n DO NOT CHANGE THE IP" \
---title="xCAT setup" \
+--text="current ip of $private_interface is $privateip_network.\n DO NOT CHANGE THE IP" \
+--title="ip of $private_interface" \
 --ok-label="OK"
                                    
 #whiptail --msgbox "Your current Private ip is $privateip_network. Press Enter & retype the same ip LOL." 10 50

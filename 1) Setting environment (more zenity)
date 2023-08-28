@@ -24,7 +24,7 @@ echo "$private_interface" > /root/inputs/private_interface
 
 #Taking inputs Hostname, IP, Domain name
 
-default_hostname=`hostname`
+default_hostname="master"
 hostname_master=$(zenity --entry --title="Hostname Setup" --text="Please provide a hostname for your master:" --entry-text="$default_hostname")
 
 if [ -n "$hostname_master" ]; then

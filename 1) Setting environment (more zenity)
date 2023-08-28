@@ -75,34 +75,34 @@ touch /root/inputs/domain_name
 echo "$domain_name" > /root/inputs/domain_name               
 hostnamectl set-hostname $hostname_master.$domain_name		                                                   
 
-state_file="script_state.txt"
+#state_file="script_state.txt"
 
-if [ -e "$state_file" ]; then
+#if [ -e "$state_file" ]; then
     # Continue from the saved state
-    saved_line=$(cat "$state_file")
+#    saved_line=$(cat "$state_file")
 #    echo "Resuming from line: $saved_line"
     # Continue your script logic here starting from the saved line
 
     # For demonstration, let's say the script is paused at line 10
     # Uncomment the line below to simulate continuing from line 11
-     ((saved_line++))
-else
-    echo "Starting the script"
-    saved_line=1
-fi
+#     ((saved_line++))
+#else
+#    echo "Starting the script"
+#    saved_line=1
+#fi
 
 # Your script logic here
-for ((i = $saved_line; i <= 20; i++)); do
+#for ((i = $saved_line; i <= 20; i++)); do
 #    echo "Processing line: $i"
     # Save the current line to the state file before restarting
-    echo "$i" > "$state_file"
+#    echo "$i" > "$state_file"
 
     # Simulate a restart
-    if [ "$i" -eq 10 ]; then
-        echo "Restarting the script"
-        exec bash
-    fi
-done
+#    if [ "$i" -eq 10 ]; then
+#        echo "Restarting the script"
+#        exec bash
+#    fi
+#done
 
 # Cleanup: remove the state file at the end
 #rm "$state_file"
@@ -121,8 +121,8 @@ done
 
 #Assigning values
 echo "$privateip_network $hostname_master $hostname_master.$domain_name" >> /etc/hosts
-#echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
+echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not running in bash
 #sed -i "\$a nameserver $ip" /etc/resolv.conf #try, this might run in bash
-echo "nameserver $privateip_network" | sudo tee -a /etc/resolv.conf      #This runs but you need to enter password
+#echo "nameserver $privateip_network" | sudo tee -a /etc/resolv.conf      #This runs but you need to enter password
 
 #whiptail --msgbox "Machine needs a reboot, please press Enter to continue." 10 50

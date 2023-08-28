@@ -3,7 +3,34 @@
 #!/bin/bash
 
 name_of_node=$(zenity --entry --title="Node name required" --text="Please provide a name to your node : ")
-#read -p "Please provide a name to your node : " name_of_node
+
+if [ -n "$name_of_node" ]; then
+    zenity --info --text="You've named your node: $name_of_node"
+else
+    zenity --error --text="No name provided."
+fi
+
+
+
+ip_of_node=$(zenity --entry --title="Ip required" --text="Please provide an ip to your node $name_of_node : ")
+
+if [ -n "ip_of_node" ]; then
+    zenity --info --text="The ip provied to $name_of_node : $ip_of_node"
+else
+    zenity --error --text="No ip provided."
+fi
+
+
+mac_of_node=$(zenity --entry --title="MAC address required" --text="Please mention the physical address / MAC address of the machine in colon-hexadecimal notation : ")
+
+if [ -n "$mac_of_node" ]; then
+    zenity --info --text="You mentioned: $mac_of_node"
+else
+    zenity --error --text="No MAC address/physical address mentioned."
+fi
+
+
+
 ip_of_node=$(zenity --entry --title="ip required" --text="Please provide the ip which you want it to be assigned to $name_of_node1 : ")
 #read -p "Please provide the ip which you want it to be assigned to $name_of_node1 : " ip_of_node
 mac_of_node=$(zenity --entry --title="ip required" --text="Please mention the mac address of $name_of_node in colon-hexadecimal notation : ")

@@ -56,12 +56,28 @@ zenity \
                                    
 #whiptail --msgbox "Your current Private ip is $privateip_network. Press Enter & retype the same ip LOL." 10 50
 #read -p "Retype Private ip of your Master Node : " master_privateip
-       
-domain_name=$(zenity --entry --title="Domain name required" --text="Please provide a domain name.")
+
+while true; do
+    default_domain="example.in"
+    domain_name=$(zenity --entry --title="Domain Name Setup" --text="Please provide a domain name and make sure it is typed in form of example.in:" --entry-text="$default_domain")
+
+    if [ -n "$domain_name" ]; then
+        zenity --question --title="Confirm Domain Name" --text="Are you sure you want to use this domain name for your cluster:\n$domain_name?"
+
+        if [ $? -eq 0 ]; then
+            echo "$domain_name" > /root/inputs/domain_name
+            echo "Entered domain name '$domain_name' saved."
+            break  # Exit the loop if domain name is entered and confirmed
+        else
+            echo "Domain name entry canceled."
+        fi
+    else
+        zenity --error --title="Domain Name Error" --text="Domain name is required. Please provide a valid domain name."
+    fi
+done
+
 touch /root/inputs/domain_name
-echo "$domain_name" > /root/inputs/domain_name
-                          
-#read -p "Please provide a domain name --Example 'avicii.in' -- : " domain_name               
+echo "$domain_name" > /root/inputs/domain_name               
 hostnamectl set-hostname $hostname_master.$domain_name		                                                   
 
 state_file="script_state.txt"

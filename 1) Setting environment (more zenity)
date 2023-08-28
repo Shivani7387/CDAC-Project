@@ -52,24 +52,28 @@ zenity \
 #whiptail --msgbox "Your current Private ip is $privateip_network. Press Enter & retype the same ip LOL." 10 50
 #read -p "Retype Private ip of your Master Node : " master_privateip
 
-while true; do
-    default_domain="example.in"
-    domain_name=$(zenity --entry --title="Domain Name Setup" --text="Please provide a domain name and make sure it is typed in form of example.in:" --entry-text="$default_domain")
+default_domain="example.com"
+domain_name=$(zenity --entry --title="Domain Name Setup" --text="Please provide a domain name:" --entry-text="$default_domain")
 
-    if [ -n "$domain_name" ]; then
-        zenity --question --title="Confirm Domain Name" --text="Are you sure you want to use this domain name for your cluster:\n$domain_name?"
-
-        if [ $? -eq 0 ]; then
-            echo "$domain_name" > /root/inputs/domain_name
-            echo "Entered domain name '$domain_name' saved."
-            break  # Exit the loop if domain name is entered and confirmed
-        else
-            echo "Domain name entry canceled."
-        fi
+if [ -n "$domain_name" ]; then
+    # Show a confirmation dialog using zenity
+    zenity --question --title="Confirm Domain Name" --text="Are you sure you want to set the domain name to:\n$domain_name?"
+    
+    # Check the exit status of zenity (0 for Yes, 1 for No)
+    if [ $? -eq 0 ]; then
+        # User confirmed, store the value in a file
+        echo "$domain_name" > /root/inputs/domain_name
+        echo "Entered domain name '$domain_name' saved."
+        
+        # Continue with the rest of your script logic
     else
-        zenity --error --title="Domain Name Error" --text="Domain name is required. Please provide a valid domain name."
+        # User canceled the confirmation, so do nothing
+        echo "Domain name entry canceled."
     fi
-done
+else
+    # User canceled or did not provide a domain name
+    echo "Domain name entry canceled."
+fi
 
 touch /root/inputs/domain_name
 echo "$domain_name" > /root/inputs/domain_name               

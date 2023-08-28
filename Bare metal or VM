@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+zenity --list --text "Select an option:" --radiolist --column "Select" --column "Option" TRUE "Virtual Machine" FALSE "Bare-metal"

@@ -66,60 +66,57 @@ dn: olcDatabase={1}monitor,cn=config
 changetype: modify
 replace: olcAccess
 olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth"
-  read by dn.base="cn=Manager,dc=$dom,dc=$dot_what" read by * none
+  read by dn.base="cn=Manager,dc=hpcsa,dc=in" read by * none
 
 dn: olcDatabase={2}hdb,cn=config
 changetype: modify
 replace: olcSuffix
-olcSuffix: dc=$dom,dc=$dot_what
+olcSuffix: dc=hpcsa,dc=in
 
 dn: olcDatabase={2}hdb,cn=config
 changetype: modify
 replace: olcRootDN
-olcRootDN: cn=Manager,dc=$dom,dc=$dot_what
+olcRootDN: cn=Manager,dc=hpcsa,dc=in
 
 dn: olcDatabase={2}hdb,cn=config
 changetype: modify
 add: olcRootPW
-olcRootPW: $hashed_password
+olcRootPW: {SSHA}HlLk9Qviw3rfsF9UNGOGaNf++0XL/Xun
 
 dn: olcDatabase={2}hdb,cn=config
 changetype: modify
 add: olcAccess
 olcAccess: {0}to attrs=userPassword,shadowLastChange by
-dn="cn=Manager,dc=$dom,dc=$dot_what" write by anonymous auth by self write by * none
+  dn="cn=Manager,dc=hpcsa,dc=in" write by anonymous auth by self write by * none
 olcAccess: {1}to dn.base="" by * read
-olcAccess: {2}to * by dn="cn=Manager,dc=$dom,dc=$dot_what" write by * read
+olcAccess: {2}to * by dn="cn=Manager,dc=hpcsa,dc=in" write by * read
 EOF
 )
 
 echo "$DOMAIN_CONTENT" > chdomain.ldif
-
-
 ldapmodify -Y EXTERNAL -H ldapi:/// -f chdomain.ldif
 
 
-
-organizational_unit=$(zenity --entry --title="organizational Unit" --text="Please provide organizational unit : ")
-cn_basedomain=$(zenity --entry --title="organizational Unit" --text="Please provide a common name for basedomain : ")
+#organizational_unit=$(zenity --entry --title="organizational Unit" --text="Please provide organizational unit : ")
+#cn_basedomain=$(zenity --entry --title="organizational Unit" --text="Please provide a common name for basedomain : ")
 BASEDOMAIN_CONTENT=$(cat <<EOF
-dn: dc=$dom,dc=$dot_what
+dn: dc=hpcsa,dc=in
 objectClass: top
 objectClass: dcObject
 objectclass: organization
-o: $dom $dot_what
-dc: $dom
+o: hpcsa in
+dc: hpcsa
 
-dn: cn=$cn_basedomain,dc=$dom,dc=$dot_what
+dn: cn=Manager,dc=hpcsa,dc=in
 objectClass: organizationalRole
 cn: Manager
 description: Directory Manager
 
-dn: ou=$organizational_unit,dc=$dom,dc=$dot_what
+dn: ou=People,dc=hpcsa,dc=in
 objectClass: organizationalUnit
 ou: People
 
-dn: ou=$organizational_unit,dc=$dom,dc=$dot_what
+dn: ou=Group,dc=hpcsa,dc=in
 objectClass: organizationalUnit
 ou: Group
 EOF

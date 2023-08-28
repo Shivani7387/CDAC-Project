@@ -1,0 +1,114 @@
+---
+- name: Install OpenHPC repository and httpd
+  hosts: your_host_group
+  become: yes  # This allows Ansible to execute commands with root privileges (sudo)
+  varsi_files:
+    - nagios_username: root
+    - nagios_password: my_app
+
+   tasks:
+    - name: Install OpenHPC repository
+      yum:
+        name: http://build.openhpc.community/OpenHPC:/1.3/CentOS_7/x86_64/ohpc-release-1.3-1.el7.x86_64.rpm
+        state: present
+
+    - name: Install dependency
+      yum:
+         name: "{{ item }}"
+       state: present
+      loop:
+        - httpd
+        - yum-utils
+
+   - name: Download xCAT repository file
+     get_url:
+       url: https://xcat.org/files/xcat/repos/yum/latest/xcat-core/xcat-core.repo
+       dest: /etc/yum.repos.d/xcat-core.repo
+
+   - name: Install ohpc-nagios package
+     yum:
+       name: ohpc-nagios
+       state: present
+
+    - name: Start Nagios service
+      systemd:
+        name: nagios
+        state: started
+
+    - name: Enable Nagios service at boot
+      systemd:
+        name: nagios
+        enabled: yes
+
+        - name: Start Nagios service
+      systemd:
+        name: httpd
+        state: started
+
+    - name: Enable Nagios service at boot
+      systemd:
+        name: httpd
+        enabled: yes
+
+
+    - name: Create Nagios user
+      htpasswd:
+        path: /etc/nagios/passwd
+        name: admin
+        password: admin
+        mode: add
+
+    - name: Remove lines
+      lineinfile:
+        path: /etc/nagios/conf.d/hosts.cfg
+        regexp: '.*'  # Match all lines
+        state: absent
+        backrefs: yes
+        validate: 'cat %s'
+
+     - name: Replace line
+       replace:
+        path: /etc/nagios/conf.d/hosts.cfg
+        regexp: 'members\ HOSTNAME1\,HOSTNAME2\,HOSTNAME3\,HOSTNAME4'
+        replace: 'members\ client'
+
+
+     - name: Replace line
+       replace:
+        path: /etc/nagios/conf.d/hosts.cfg
+        regexp: 'host_name\ HOSTNAME1'
+        replace: 'host_name\ client'
+
+     - name: Get IP address
+       shell: cat /etc/hosts | grep client | awk '{ print $1 }'
+       register: ipp_output
+
+         - name: Replace line with IP address
+      lineinfile:
+        path: /etc/nagios/conf.d/hosts.cfg
+        regexp: 'address\ HOST1_IP'
+        line: 'address\ {{ ipp_output.stdout }}'
+
+    - name: Change ownership
+      file:
+        path: /etc/nagios/conf.d/hosts.cfg
+        owner: nagios
+        group: nagios
+
+    - name: Copy file
+      copy:
+        src: /path/to/services.cfg.example
+        dest: /etc/nagios/conf.d/services.cfg
+
+    - name: Change ownership
+      file:
+        path: /etc/nagios/conf.d/services.cfg
+        owner: nagios
+        group: nagios
+
+    - name: Restart Nagios service
+      systemd:
+        name: nagios
+        state: restarted
+
+

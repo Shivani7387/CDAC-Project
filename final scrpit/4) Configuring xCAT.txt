@@ -1,0 +1,22 @@
+#PART 4
+
+
+#!/bin/bash
+
+domain_name=`cat /root/inputs/domain_name`
+hostname_master=`cat /root/inputs/hostname_master`
+private_interface=`cat /root/inputs/private_interface`
+private_ip=`cat /root/inputs/private_ip`
+
+chdef -t site domain=$domain_name
+dhcpinterfaces="chdef -t site dhcpinterfaces='$hostname_master|$private_interface'"
+eval "$dhcpinterfaces"
+worker_password=$(zenity --entry --title="Password" --text="Provide a common password for all worker nodes : ")
+#read -p "Provide Password for worker node : " worker_password
+passwd="chtab key=system passwd.username=root passwd.password=$worker_password"
+eval "$passwd"
+#chtab key=system passwd.username=root passwd.password=$worker_password
+makedhcp -n
+makedns -n
+makentp
+systemctl restart dhcpd

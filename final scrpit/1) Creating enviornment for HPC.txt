@@ -1,7 +1,7 @@
 #PART 1
-
-whiptail --msgbox "Welcome to Setup wizard of xCAT. Press Enter to continue." 10 50
 yum install zenity -y
+zenity --info --text "Welcome to the xCAT Setup Wizard. Click OK to continue." --title "xCAT Setup" --width=400
+
 
 
 #Disable Firewall

@@ -1,4 +1,3 @@
-#PART 1
 #!/bin/bash
 
 
@@ -80,7 +79,7 @@ fi
 
 touch /root/inputs/domain_name
 echo "$domain_name" > /root/inputs/domain_name               
-hostnamectl set-hostname $hostname_master.$domain_name		                                                   
+hostnamectl set-hostname $hostname_master.$domain_name                                                             
 
 #state_file="script_state.txt"
 
@@ -135,23 +134,26 @@ echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not ru
 #whiptail --msgbox "Machine needs a reboot, please press Enter to continue." 10 50
 
 
+
 # Make sure the scripts are executable
+
+
 chmod +x vm_xCAT.sh bm_xCAT.sh
 
+# Prompt the user for a hostname
+# Present the user with a choice using Zenity
 choice=$(zenity --list --text "Select an option:" --radiolist --column "Select" --column "Option" TRUE "Virtual Machine" FALSE "Bare-metal")
 
-run_script() {
-    gnome-terminal -- bash -c "$hostname_master; exec bash"
+# Function to run a script and close the terminal afterward
+run_script_and_close_terminal() {
+    gnome-terminal -- bash -c "$1; exec bash"
 }
 
 case "$choice" in
     "Virtual Machine")
-        run_script "./vm_xCAT.sh"
+        run_script_and_close_terminal "./vm_xCAT.sh"
         ;;
     "Bare-metal")
-        run_script "./bm_xCAT.sh"
+        run_script_and_close_terminal "./bm_xCAT.sh"
         ;;
 esac
-
-
-

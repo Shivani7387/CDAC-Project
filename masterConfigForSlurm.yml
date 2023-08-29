@@ -79,8 +79,9 @@
       lineinfile:
         path: /etc/slurm/slurm.conf
         regexp: '^ControlMachine='
-        line: 'ControlMachine=master'
+        line: 'ControlMachine=master
 
+############# Only Nodes ###########################
 - name: Run slurmd -C command
   hosts: nodes
   become: true
@@ -91,6 +92,7 @@
         command: ansible-playbook ./hosts node_info.yml
         register: node_info_output
 
+################# Only Master ####################################
 - name: Run slurmd -C command
   hosts: localhost
   become: true

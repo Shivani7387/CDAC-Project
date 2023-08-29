@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+yum install gnome-terminal -y
 yum install zenity -y
 zenity --info --text "Welcome to the xCAT Setup Wizard. Click OK to continue." --title "xCAT Setup" --width=400
 

@@ -135,4 +135,23 @@ echo "nameserver $privateip_network" >> /etc/resolv.conf    #this command not ru
 #whiptail --msgbox "Machine needs a reboot, please press Enter to continue." 10 50
 
 
+# Make sure the scripts are executable
+chmod +x vm_xCAT.sh bm_xCAT.sh
+
+choice=$(zenity --list --text "Select an option:" --radiolist --column "Select" --column "Option" TRUE "Virtual Machine" FALSE "Bare-metal")
+
+run_script() {
+    gnome-terminal -- bash -c "$hostname_master; exec bash"
+}
+
+case "$choice" in
+    "Virtual Machine")
+        run_script "./vm_xCAT.sh"
+        ;;
+    "Bare-metal")
+        run_script "./bm_xCAT.sh"
+        ;;
+esac
+
+
 

@@ -4,24 +4,6 @@
   hosts: all
   become: true
   tasks:
-         # All Machine
-    - name: Install dependency packages
-      yum:
-       name: "{{ item }}"
-       state: present
-      loop:
-        - epel-release
-        - munge
-        - munge-libs
-        - munge-devel
-        - rpm-build
-        - python3
-        - readline-devel
-        - perl-ExtUtils-MakeMaker
-        - pam-devel
-        - gcc
-        - mysql-devel
-
     - name: Set SLURMUSER Environment Variable
       set_fact:
          SLURMUSER: 900

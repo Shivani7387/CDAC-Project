@@ -3,39 +3,6 @@
   hosts: localhost
   become: true
   tasks:
-
-    - name: Download SLURM tarball
-      get_url:
-        url: https://download.schedmd.com/slurm/slurm-20.11.9.tar.bz2
-        dest: /root/slurm-20.11.9.tar.bz2  # Specify the destination path
-   
-    - name: extract SLURM tar file
-      command: rpmbuild -ta /root/slurm-20.11.9.tar.bz2
- 
-    - name: Create /home/rpms directory
-      file:
-        path: /home/rpms
-        state: directory
- 
-    - name: Copy RPMs to /home/rpms
-      synchronize:
-        src: /root/rpmbuild/RPMS/x86_64/
-        dest: /home/rpms/
-
-   - name: List directory content
-      find:
-        paths: /home/rpms/
-        patterns: "*.rpm"
-      register: rpm_file_result
-
-
-   - name: Install RPM file
-      yum:
-        name: "{{ rpm_file_result.files[0].path }}"
-        state: present
-      when: rpm_file_result.matched > 0
-
-
    - name: Generate MUNGE key
      command: /usr/sbin/create-munge-key > /etc/munge/munge.key
      changed_when: false
@@ -58,28 +25,32 @@
         owner: slurm
         group: slurm
 
-   - name: Create slurm_jobacct.log and slurm_jobcomp.log
+   - name: Create slurm_jobacct.log 
      file:
        path: /var/log/slurm_jobacct.log
        state: touch
 
-   - name: Change ownership of slurm_jobacct.log and slurm_jobcomp.log
+   - name: Change ownership of slurm_jobacct.log 
       file:
         path: /var/log/slurm_jobacct.log
         owner: slurm
         group: slurm
+
+   - name: Create slurm_jobcomp.log
+     file:
+       path: /var/log/slurm_jobacct.log
+       state: touch
 
    - name: Change ownership of slurm_jobcomp.log
       file:
         path: /var/log/slurm_jobcomp.log
         owner: slurm
 
-
    - name: Edit slurm.conf
       lineinfile:
         path: /etc/slurm/slurm.conf
         regexp: '^ControlMachine='
-        line: 'ControlMachine=master'
+        line: 'ControlMachine=hpcsa20'
 
 - name: Run slurmd -C command
   hosts: nodes
@@ -88,7 +59,7 @@
       
       - name: Execute Another Playbook on Different Host
         run_once: true
-        command: ansible-playbook ./hosts node_info.yml
+        command: slurmd -C
         register: node_info_output
 
 - name: Run slurmd -C command
